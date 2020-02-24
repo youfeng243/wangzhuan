@@ -167,56 +167,62 @@ def open_listen_order():
         "Cookie": cookie,
         "X-Requested-With": "io.dcloud.W2Axx.lh"
     }
-    global open_index
-    open_index += 1
-    open_index %= len(open_list)
-    log.info("当前使用帐户信息: open_index = {}".format(open_index))
 
-    param = open_list[open_index]
-    param_dict = json.loads(param)
+    total = len(open_list)
+    cnt = 0
 
-    param_dict['AliveLastTime'] = "/Date({})/".format(int(time.time() * 1000))
+    # 遍历所有的帐户，如果所有帐户均不可用，则需要退出抢单 并提示错误
+    while cnt < total:
+        cnt += 1
+        global open_index
+        open_index += 1
+        open_index %= len(open_list)
+        log.info("当前使用帐户信息: open_index = {}".format(open_index))
 
-    post_data = {
-        "token": token,
-        'channel': json.dumps(param_dict)
-    }
+        param = open_list[open_index]
+        param_dict = json.loads(param)
 
-    try:
-        resp = requests.post(url=url, headers=headers, data=post_data)
-        if resp is None:
-            log.error("当前请求站点异常，退出流程")
+        param_dict['AliveLastTime'] = "/Date({})/".format(int(time.time() * 1000))
+
+        post_data = {
+            "token": token,
+            'channel': json.dumps(param_dict)
+        }
+
+        try:
+            resp = requests.post(url=url, headers=headers, data=post_data)
+            if resp is None:
+                log.error("当前请求站点异常，退出流程")
+                os._exit(0)
+
+            if resp.status_code != 200:
+                log.error("请求站点状态码异常: url = {} code = {}".format(
+                    url, resp.status_code))
+                os._exit(0)
+
+            log.info("日志: {} {}".format(url, resp.text))
+
+            json_data = resp.json()
+            if json_data is None:
+                log.error("返回数据包异常: url = {} json_data = None".format(url))
+                os._exit(0)
+
+            code = json_data.get("code")
+            if code != 0:
+                log.error("当前帐户抢单异常: url = {} data = {} open_index = {}".format(
+                    url, resp.text, open_index))
+                log.info("本次抢单失败，切换账号: open_index = {}".format(open_index))
+                continue
+
+            return True
+        except Exception as e:
+            log.error("请求判断订单信息异常，退出流程")
+            log.exception(e)
             os._exit(0)
 
-        if resp.status_code != 200:
-            log.error("请求站点状态码异常: url = {} code = {}".format(
-                url, resp.status_code))
-            os._exit(0)
-
-        log.info("日志: {} {}".format(url, resp.text))
-
-        json_data = resp.json()
-        if json_data is None:
-            log.error("返回数据包异常: url = {} json_data = None".format(url))
-            os._exit(0)
-
-        code = json_data.get("code")
-        if code != 0:
-            log.error("当前帐户抢单异常: url = {} data = {} open_index = {}".format(
-                url, resp.text, open_index))
-            return False
-
-        return True
-    except Exception as e:
-        log.error("请求判断订单信息异常，退出流程")
-        log.exception(e)
+    if cnt >= total:
+        log.error("当前所有帐户均不可用, 退出抢单: url = {}".format(url))
         os._exit(0)
-
-
-# 防止锁屏
-def stop_lock_screen():
-    # pag.press("esc")
-    pass
 
 
 def main():
@@ -235,10 +241,7 @@ def main():
         # 开启抢单 休眠3s
         if open_listen_order():
             log.info("开启抢单，休眠2秒...")
-            stop_lock_screen()
             time.sleep(2)
-        else:
-            log.info("本次抢单失败，切换账号...")
 
 
 if __name__ == '__main__':

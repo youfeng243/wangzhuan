@@ -9,7 +9,6 @@ import json
 import os
 import time
 
-import pyautogui as pag
 import requests
 
 from logger import Logger
@@ -216,7 +215,8 @@ def open_listen_order():
 
 # 防止锁屏
 def stop_lock_screen():
-    pag.press("esc")
+    # pag.press("esc")
+    pass
 
 
 def main():

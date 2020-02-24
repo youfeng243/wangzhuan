@@ -9,8 +9,9 @@ import json
 import os
 import time
 
-import requests
 import pyautogui as pag
+import requests
+
 from logger import Logger
 
 log = Logger('wangzhuan.log').get_logger()
@@ -20,10 +21,11 @@ token = 'kVcJcoilMXWIvcpJV7FLONVzneaveDaphs8tAenbG3ovzC73Z8uD+pZ5eZC8H9l1FS+vsYf
 
 open_list = [
     '{"Channelid":49479,"GateID":0,"ChannelType":3,"ChanneCode":"ALIPAY","ChannelName":"李珍珍1","ChannelRate":0,"ChannelStatus":1,"ChannelOrder":0,"ChannelCardNoLength":null,"ChannelCardPassLength":null,"ChannelCardRules":null,"ChannelRemark":"8426","FileStream":null,"AliveLastTime":"/Date(1582529077340)/","ChannelUseLastTime":"/Date(-62135596800000)/","SXFType":0,"PreOrderMoney":0,"MaxSXF":0,"IsDelete":0,"Memberid":19373,"AccountCode":"HTTPS://QR.ALIPAY.COM/FKX00684VAPHYFAAV09U61?t=1582530015104","pl":0}',
-    #'{"Channelid":49480,"GateID":0,"ChannelType":3,"ChanneCode":"ALIPAY","ChannelName":"李珍珍2","ChannelRate":0,"ChannelStatus":1,"ChannelOrder":0,"ChannelCardNoLength":null,"ChannelCardPassLength":null,"ChannelCardRules":null,"ChannelRemark":"3146","FileStream":null,"AliveLastTime":"/Date(1582529896913)/","ChannelUseLastTime":"/Date(-62135596800000)/","SXFType":0,"PreOrderMoney":0,"MaxSXF":0,"IsDelete":0,"Memberid":19373,"AccountCode":"https://qr.alipay.com/fkx18459sjtpb7lmwj2l793?t=1582530061899","pl":0}',
+    # '{"Channelid":49480,"GateID":0,"ChannelType":3,"ChanneCode":"ALIPAY","ChannelName":"李珍珍2","ChannelRate":0,"ChannelStatus":1,"ChannelOrder":0,"ChannelCardNoLength":null,"ChannelCardPassLength":null,"ChannelCardRules":null,"ChannelRemark":"3146","FileStream":null,"AliveLastTime":"/Date(1582529896913)/","ChannelUseLastTime":"/Date(-62135596800000)/","SXFType":0,"PreOrderMoney":0,"MaxSXF":0,"IsDelete":0,"Memberid":19373,"AccountCode":"https://qr.alipay.com/fkx18459sjtpb7lmwj2l793?t=1582530061899","pl":0}',
     '{"Channelid":49481,"GateID":0,"ChannelType":3,"ChanneCode":"ALIPAY","ChannelName":"游丰3","ChannelRate":0,"ChannelStatus":1,"ChannelOrder":0,"ChannelCardNoLength":null,"ChannelCardPassLength":null,"ChannelCardRules":null,"ChannelRemark":"3506","FileStream":null,"AliveLastTime":"/Date(1582528365067)/","ChannelUseLastTime":"/Date(-62135596800000)/","SXFType":0,"PreOrderMoney":0,"MaxSXF":0,"IsDelete":0,"Memberid":19373,"AccountCode":"HTTPS://QR.ALIPAY.COM/FKX05314IKKOIDA3QNG8F7?t=1582529061618","pl":0}'
 ]
 open_index = 0
+
 
 # 判断是否有订单 listenOrder 如有 则退出
 def have_order():
@@ -76,6 +78,10 @@ def have_order():
             os._exit(0)
 
         if len(result) > 0:
+            order_dict = result[0]
+            if isinstance(order_dict, dict):
+                log.info("###################订单信息###################")
+                log.info("{}".format(json.dumps(order_dict, indent=4, ensure_ascii=False)))
             return True
 
         return False
@@ -206,6 +212,7 @@ def open_listen_order():
         log.error("请求判断订单信息异常，退出流程")
         log.exception(e)
         os._exit(0)
+
 
 # 防止锁屏
 def stop_lock_screen():

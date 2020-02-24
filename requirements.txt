@@ -1,4 +1,4 @@
-requests==2.13.0
+requests==2.20.0
 requests[socks]
 pysocks==1.6.8
 pyautogui

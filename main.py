@@ -10,7 +10,7 @@ import os
 import time
 
 import requests
-
+import pyautogui as pag
 from logger import Logger
 
 log = Logger('wangzhuan.log').get_logger()
@@ -207,6 +207,10 @@ def open_listen_order():
         log.exception(e)
         os._exit(0)
 
+# 防止锁屏
+def stop_lock_screen():
+    pag.press("esc")
+
 
 def main():
     while True:
@@ -224,6 +228,7 @@ def main():
         # 开启抢单 休眠3s
         if open_listen_order() == True:
             log.info("开启抢单，休眠2秒...")
+            stop_lock_screen()
             time.sleep(2)
         else:
             log.info("本次抢单失败，切换账号...")

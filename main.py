@@ -197,8 +197,11 @@ def open_listen_order():
 
         code = json_data.get("code")
         if code != 0:
-            log.error("请求返回code异常: url = {} data = {}".format(url, resp.text))
-            os._exit(0)
+            log.error("当前帐户抢单异常: url = {} data = {} open_index = {}".format(
+                url, resp.text, open_index))
+            return False
+
+        return True
     except Exception as e:
         log.error("请求判断订单信息异常，退出流程")
         log.exception(e)
@@ -214,15 +217,16 @@ def main():
 
         # 判断是否正在抢单， 如有 则休眠3s 重新判断是否有订单
         if is_listen_order():
-            log.info("当前正在抢单，休眠3秒...")
-            time.sleep(3)
+            log.info("当前正在抢单，休眠2秒...")
+            time.sleep(2)
             continue
 
         # 开启抢单 休眠3s
-        open_listen_order()
-        log.info("开启抢单，休眠3秒...")
-        time.sleep(3)
-
+        if open_listen_order() == True:
+            log.info("开启抢单，休眠2秒...")
+            time.sleep(2)
+        else:
+            log.info("本次抢单失败，切换账号...")
 
 
 if __name__ == '__main__':

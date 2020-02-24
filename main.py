@@ -233,7 +233,7 @@ def main():
             continue
 
         # 开启抢单 休眠3s
-        if open_listen_order() == True:
+        if open_listen_order():
             log.info("开启抢单，休眠2秒...")
             stop_lock_screen()
             time.sleep(2)

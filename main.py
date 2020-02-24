@@ -59,7 +59,7 @@ def have_order():
                 url, resp.status_code))
             os._exit(0)
 
-        log.info("当前请求日志: url = {} data = {}".format(url, resp.text))
+        log.info("日志: {} {}".format(url, resp.text))
 
         json_data = resp.json()
         if json_data is None:
@@ -123,7 +123,7 @@ def is_listen_order():
                 url, resp.status_code))
             os._exit(0)
 
-        log.info("当前请求日志: url = {} data = {}".format(url, resp.text))
+        log.info("日志: {} {}".format(url, resp.text))
 
         json_data = resp.json()
         if json_data is None:
@@ -193,7 +193,7 @@ def open_listen_order():
                 url, resp.status_code))
             os._exit(0)
 
-        log.info("当前请求日志: url = {} data = {}".format(url, resp.text))
+        log.info("日志: {} {}".format(url, resp.text))
 
         json_data = resp.json()
         if json_data is None:

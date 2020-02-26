@@ -6,7 +6,7 @@
 # @File    : config.py
 # @Software: PyCharm
 
-account_list = [
+ACCOUNT_LIST = [
     {
         "username": "16860684261",
         "password": "zhen1991",

@@ -1,0 +1,33 @@
+获取回款信息
+POST http://h52h.5188wangzhuan.com/api/v2.0/getBank?version=2.0 HTTP/1.1
+Host: h52h.5188wangzhuan.com
+Connection: keep-alive
+Content-Length: 174
+Accept: application/json, text/plain, */*
+Origin: http://h52h.5188wangzhuan.com
+User-Agent: Mozilla/5.0 (Linux; Android 8.0.0; FRD-AL10 Build/HUAWEIFRD-AL10; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/70.0.3538.110 Mobile Safari/537.36 Html5Plus/1.0 (Immersed/24.0)
+Content-Type: application/x-www-form-urlencoded
+Referer: http://h52h.5188wangzhuan.com/index.html?v=2.3
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,en-US;q=0.9
+Cookie: ASP.NET_SessionId=egz0pkbgoamqpd54pcmvmvyx
+X-Requested-With: io.dcloud.W2Axx.lh
+
+
+HTTP/1.1 200 OK
+Cache-Control: private
+Content-Type: application/json; charset=utf-8
+Server: Microsoft-IIS/7.5
+X-AspNetMvc-Version: 4.0
+Set-Cookie: ASP.NET_SessionId=egz0pkbgoamqpd54pcmvmvyx; expires=Thu, 25-Feb-2021 02:43:23 GMT; path=/
+Access-Control-Allow-Methods: OPTIONS,POST,GET
+Access-Control-Allow-Headers: x-requested-with,content-type
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Origin: http://localhost:8080
+X-AspNet-Version: 0
+X-Powered-By: WAF/2.0
+Date: Wed, 26 Feb 2020 02:43:23 GMT
+Content-Length: 133
+
+post参数
+token	kVcJcoilMXWIvcpJV7FLONVzneaveDaphs8tAenbG3ovzC73Z8uD+pZ5eZC8H9l1FS+vsYfi9qpyjFpBZZSqQSVx8h2obf+bXJa0ZNiTdFZEE7p7bOldI80qpsvpo+0TyTP9K8+Y45yL/3utJWBq5Q==

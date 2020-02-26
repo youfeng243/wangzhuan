@@ -35,12 +35,10 @@ ACCOUNT_LIST = [
     {
         "username": "36860684261",
         "password": "zhen1991",
-        "token": 'kVcJcoilMXWIvcpJV7FLONVzneaveDaphs8tAenbG3ovzC73Z8uD+pZ5eZC8H9l1FS+vsYfi9qpyjFpBZZSqQSVx8h2obf+bXJa0ZNiTdFZEE7p7bOldI80qpsvpo+0TyTP9K8+Y45yL/3utJWBq5Q==',
+        "token": 'VsImDWrWasXLrZpXtGo4V+5fZuYx0FdQTqduR3MCzQJIwr49o8ctpWYLUXKKhK4bK4GR8SxY4qyfHKKsuOxL0bS/G9zdMJck61cxUMEzdcyq031iNPCvpt9vCfL7x7j2',
         "alipay": "13532369240.jpeg",
         'open_list': [
-            '{"Channelid":49479,"GateID":0,"ChannelType":3,"ChanneCode":"ALIPAY","ChannelName":"李珍珍1","ChannelRate":0,"ChannelStatus":1,"ChannelOrder":0,"ChannelCardNoLength":null,"ChannelCardPassLength":null,"ChannelCardRules":null,"ChannelRemark":"8426","FileStream":null,"AliveLastTime":"/Date(1582631604510)/","ChannelUseLastTime":"/Date(-62135596800000)/","SXFType":0,"PreOrderMoney":0,"MaxSXF":0,"IsDelete":0,"Memberid":19373,"AccountCode":"HTTPS://QR.ALIPAY.COM/FKX00684VAPHYFAAV09U61?t=1582619027140","pl":0}',
-            '{"Channelid":49480,"GateID":0,"ChannelType":3,"ChanneCode":"ALIPAY","ChannelName":"李珍珍2","ChannelRate":0,"ChannelStatus":1,"ChannelOrder":0,"ChannelCardNoLength":null,"ChannelCardPassLength":null,"ChannelCardRules":null,"ChannelRemark":"3146","FileStream":null,"AliveLastTime":"/Date(1582529896913)/","ChannelUseLastTime":"/Date(-62135596800000)/","SXFType":0,"PreOrderMoney":0,"MaxSXF":0,"IsDelete":0,"Memberid":19373,"AccountCode":"https://qr.alipay.com/fkx18459sjtpb7lmwj2l793?t=1582530061899","pl":0}',
-            '{"Channelid":49481,"GateID":0,"ChannelType":3,"ChanneCode":"ALIPAY","ChannelName":"游丰3","ChannelRate":0,"ChannelStatus":1,"ChannelOrder":0,"ChannelCardNoLength":null,"ChannelCardPassLength":null,"ChannelCardRules":null,"ChannelRemark":"3506","FileStream":null,"AliveLastTime":"/Date(1582528365067)/","ChannelUseLastTime":"/Date(-62135596800000)/","SXFType":0,"PreOrderMoney":0,"MaxSXF":0,"IsDelete":0,"Memberid":19373,"AccountCode":"HTTPS://QR.ALIPAY.COM/FKX05314IKKOIDA3QNG8F7?t=1582529061618","pl":0}'
+            '{"Channelid":51260,"GateID":0,"ChannelType":3,"ChanneCode":"ALIPAY","ChannelName":"yf9420","ChannelRate":0,"ChannelStatus":1,"ChannelOrder":0,"ChannelCardNoLength":null,"ChannelCardPassLength":null,"ChannelCardRules":null,"ChannelRemark":"9240","FileStream":null,"AliveLastTime":"/Date(1582718941073)/","ChannelUseLastTime":"/Date(-62135596800000)/","SXFType":0,"PreOrderMoney":0,"MaxSXF":0,"IsDelete":0,"Memberid":19903,"AccountCode":"HTTPS://QR.ALIPAY.COM/FKX07754EGBFRZH7TMZCFD","pl":0}'
         ],
         "start": True
     },

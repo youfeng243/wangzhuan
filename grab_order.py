@@ -33,8 +33,22 @@ class GrabOrder(object):
         self.log.info("当前账户支付宝对应手机号码: {}".format(self.__phone))
         self.__cookie = self.__user_info.get("cookie")
 
+    # 获得系统版本信息
+    def __get_system_info(self):
+        import platform
+        system = platform.system()
+        if system == 'Darwin':
+            return 'mac'
+        if system == 'Linux':
+            return 'linux'
+        return 'win'
+
     def __get_alipay_url(self, picture_name):
-        pic_path = "./picture/" + picture_name
+        system = self.__get_system_info()
+        if system == 'win':
+            pic_path = '.\\picture\\' + picture_name
+        else:
+            pic_path = "./picture/" + picture_name
         url = decode_qr_code(pic_path)
         self.log.info("当前解析到支付宝链接: url = {}".format(url))
         return url

@@ -9,7 +9,6 @@ import copy
 import datetime
 import json
 import os
-import queue
 import shutil
 import time
 
@@ -18,9 +17,11 @@ import requests
 from play_audio import play_hint_audio
 from qr_code import decode_qr_code, get_pic_base64
 
+is_running = True
+
 
 class GrabOrder(object):
-    def __init__(self, user_info_dict, log, _queue=None):
+    def __init__(self, user_info_dict, log):
         self.log = log
         self.__user_info = user_info_dict
         self.__username = self.__user_info.get("username")
@@ -44,12 +45,6 @@ class GrabOrder(object):
 
         # 上传最新二维码
         self.upload_gathering()
-
-        # 多线程消息队列
-        if _queue is None:
-            self.__queue = queue.Queue()
-        else:
-            self.__queue = _queue
 
     def __get_pic_path(self, pic_name):
         system = self.__get_system_info()
@@ -493,21 +488,13 @@ class GrabOrder(object):
 
     def run(self):
         self.log.info("开始启动抢单: {} {} {}".format(self.__phone, self.__user_id, self.__account))
-
-        while True:
-
-            # 如果是退出的消息, 则退出循环
-            try:
-                msg = self.__queue.get_nowait()
-                if msg == 'stop':
-                    break
-            except queue.Empty:
-                pass
+        global is_running
+        while is_running:
 
             # 判断是否有订单 listenOrder 如有 则退出
             if self.__have_order():
+                is_running = False
                 # 通知其他线程退出
-                self.__queue.put_nowait("stop")
                 self.log.info("当前存在订单，停止抢单! {} {} {}".format(self.__phone, self.__user_id, self.__account))
                 # 这里播放语音
                 play_hint_audio()

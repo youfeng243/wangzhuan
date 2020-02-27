@@ -21,9 +21,9 @@ ACCOUNT_LIST = [
         "password": "zhen1991",
         "token": 'I2gC8ie5Ljsflysd5V2irGWW+gbfz8sh1DMSYNkTHjPlQ8rIP/sdVuEgmAc/PE9lupvk0FsSrYyOJ4IsvhdIDXzAdJa4lNA+6b0HAOECP1QI+Q/OuPMROMvnZ6Rds1kf47ajagpL69vV55tMiFK+7ddCyzVP26bN+WopR1icbQI=',
         # 暂时缺失
-        "alipay": "13686068426.JPG",
+        "alipay": "13302963506.jpg",
         'cookie': 'ASP.NET_SessionId=cxvj0newpujo2bklnfxjohbc',
-        "start": False
+        "start": True
     },
     {
         "username": "36860684261",

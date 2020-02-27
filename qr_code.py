@@ -30,5 +30,5 @@ def get_pic_base64(pic_path):
 if __name__ == '__main__':
     # print(decode_qr_code('./picture/WechatIMG463.jpeg'))
     # print(decode_qr_code('./picture/13532369240.jpeg'))
-    # print(decode_qr_code('./picture/WechatIMG464.jpeg'))
-    print(get_pic_base64("./picture/13686068426.JPG"))
+    print(decode_qr_code('./picture/13532369240.jpeg'))
+    print(get_pic_base64("./picture/13532369240.jpeg"))

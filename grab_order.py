@@ -40,8 +40,7 @@ class GrabOrder(object):
         # 获取收款码列表
         self.__open_index = 0
         self.__open_list = self.get_qr_list()
-        self.__open_length = len(self.__open_list)
-        self.log.info("当前收款账号数目: length = {}".format(self.__open_length))
+        self.log.info("当前收款账号数目: length = {}".format(len(self.__open_list)))
 
         # 上传最新二维码
         self.upload_gathering()
@@ -285,11 +284,11 @@ class GrabOrder(object):
         cnt = 0
 
         # 遍历所有的帐户，如果所有帐户均不可用，则需要退出抢单 并提示错误
-        while cnt < self.__open_length:
+        while cnt < len(self.__open_list):
             cnt += 1
 
             self.__open_index += 1
-            self.__open_index %= self.__open_length
+            self.__open_index %= len(self.__open_list)
             self.log.info("当前使用帐户信息: {} open_index = {}".format(self.__user_id, self.__open_index))
 
             param_dict = copy.deepcopy(self.__open_list[self.__open_index])
@@ -333,7 +332,7 @@ class GrabOrder(object):
                 self.log.exception(e)
                 os._exit(0)
 
-        if cnt >= self.__open_length:
+        if cnt >= len(self.__open_list):
             self.log.error("当前所有帐户均不可用, 退出抢单: {} url = {}".format(self.__user_id, url))
             os._exit(0)
 
@@ -510,6 +509,9 @@ class GrabOrder(object):
             if self.__open_listen_order():
                 self.log.info("开启抢单，休眠20秒: {} {} {}".format(self.__phone, self.__user_id, self.__account))
                 time.sleep(20)
+
+            # 重新抢单后获取配置列表
+            self.__open_list = self.get_qr_list()
         self.log.info("当前线程正常退出: user_id = {} phone = {} account = {}".format(
             self.__user_id, self.__phone, self.__account))
 

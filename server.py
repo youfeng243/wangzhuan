@@ -5,6 +5,7 @@
 # @Site    : 
 # @File    : server.py
 # @Software: PyCharm
+import queue
 import threading
 
 from config import ACCOUNT_LIST
@@ -19,12 +20,12 @@ def run(grab_obj):
 
 
 def main():
+    q = queue.Queue()
     thread_list = []
-
     for user_info_dict in ACCOUNT_LIST:
         # 判断是否开启账户
         if user_info_dict.get("start"):
-            t = threading.Thread(target=run, args=(GrabOrder(user_info_dict, log),))
+            t = threading.Thread(target=run, args=(GrabOrder(user_info_dict, log, q),))
 
             thread_list.append(t)
 

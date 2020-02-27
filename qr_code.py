@@ -15,4 +15,6 @@ def decode_qr_code(code_img_path):
 
 
 if __name__ == '__main__':
-    print(decode_qr_code('./picture/13302963146.jpeg'))
+    print(decode_qr_code('./picture/WechatIMG463.jpeg'))
+    print(decode_qr_code('./picture/13532369240.jpeg'))
+    print(decode_qr_code('./picture/WechatIMG464.jpeg'))

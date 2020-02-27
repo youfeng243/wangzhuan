@@ -1,0 +1,40 @@
+确认回款
+
+POST http://h52h.5188wangzhuan.com/api/v2.0/UpdateHK?version=2.0 HTTP/1.1
+Host: h52h.5188wangzhuan.com
+Connection: keep-alive
+Content-Length: 2516
+Accept: application/json, text/plain, */*
+Origin: http://h52h.5188wangzhuan.com
+User-Agent: Mozilla/5.0 (Linux; Android 8.0.0; FRD-AL10 Build/HUAWEIFRD-AL10; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/70.0.3538.110 Mobile Safari/537.36 Html5Plus/1.0 (Immersed/24.0)
+Content-Type: application/x-www-form-urlencoded
+Referer: http://h52h.5188wangzhuan.com/index.html?v=2.3
+Accept-Encoding: gzip, deflate
+Accept-Language: zh-CN,en-US;q=0.9
+Cookie: ASP.NET_SessionId=egz0pkbgoamqpd54pcmvmvyx
+X-Requested-With: io.dcloud.W2Axx.lh
+
+
+HTTP/1.1 200 OK
+Cache-Control: private
+Content-Type: application/json; charset=utf-8
+Server: Microsoft-IIS/7.5
+X-AspNetMvc-Version: 4.0
+Set-Cookie: ASP.NET_SessionId=egz0pkbgoamqpd54pcmvmvyx; expires=Thu, 25-Feb-2021 02:47:15 GMT; path=/
+Access-Control-Allow-Methods: OPTIONS,POST,GET
+Access-Control-Allow-Headers: x-requested-with,content-type
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Origin: http://localhost:8080
+X-AspNet-Version: 0
+X-Powered-By: WAF/2.0
+Date: Wed, 26 Feb 2020 02:47:14 GMT
+Content-Length: 34
+
+
+post 参数
+bank	{"BankID":"2","BankName":"中国建设银行","BankCard":"6217002980110395451","BankACCount":"陈太君","ID":1502}
+item	[{"OrderID":2012704,"UserID":17339,"GroupID":2536,"Gateid":0,"AgentID":2658,"MemberId":19373,"Channelid":49481,"SuperNO":"3","BillNO":"P200226104145210","LinkID":"D200226104042895673101","ChannelCode":"游丰3","OrderMoney":300,"Realmoney":300,"AgentMoney":1.5,"LeaderMoeny":0,"SysMoney":3.9,"UserMoney":291,"MemberMoney":2.7,"UserAgentMoney":0,"PayDate":"/Date(1582684828150)/","GiveDate":"/Date(1582684881720)/","PayType":3,"CardType":0,"CardNumber":"HTTPS://QR.ALIPAY.COM/FKX05314IKKOIDA3QNG8F7?t=158","CardPass":null,"Promotion":0,"OrderStatus":1,"GateMsg":"orderid=2012704&account=300.00","SendStatus":1,"SendMsg":"","SendNum":1,"CallBack":"http://mbv1.gssatlive.com/api/notify/lanhai","JumpUrl":"http://www.1cai11.com","AssistStr":"","IsSettle":0,"ChannelType":0,"ChannelTypeStr":null,"typename":"支付宝","SubType":0,"UserIp":"113.57.246.31","UserHref":"Mozilla/5.0 (Linux; Android 9; V1831A Build/P00610; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/66.0.3359.126 MQQBrowser/6.2 TBS/045120 Mobile Safari/537.36","SuccType":0,"SendMethod":null,"SendAttach":null,"CheckCode":null,"PerSonGuid":"2020/2/26 10:42:14","ChannelName":"游丰3","UserRealName":"1李珍珍","Mobile":"16860684261","AgentName":"小菲21团","IsHuikuan":-1,"HuikuanTime":"/Date(-62135596800000)/","HuikuanCheckTime":"/Date(-62135596800000)/","checked":true,"disabled":false}]
+token	kVcJcoilMXWIvcpJV7FLONVzneaveDaphs8tAenbG3ovzC73Z8uD+pZ5eZC8H9l1FS+vsYfi9qpyjFpBZZSqQSVx8h2obf+bXJa0ZNiTdFZEE7p7bOldI80qpsvpo+0TyTP9K8+Y45yL/3utJWBq5Q==
+
+返回信息:
+{"code":0,"msg":"确认成功！"}

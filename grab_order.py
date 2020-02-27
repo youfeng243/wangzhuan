@@ -508,7 +508,7 @@ class GrabOrder(object):
             # 开启抢单 休眠3s
             if self.__open_listen_order():
                 self.log.info("开启抢单，休眠20秒: {} {} {}".format(self.__phone, self.__user_id, self.__account))
-                time.sleep(20)
+                time.sleep(25)
 
             # 重新抢单后获取配置列表
             self.__open_list = self.get_qr_list()

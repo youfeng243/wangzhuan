@@ -5,6 +5,7 @@
 # @Site    : 
 # @File    : grab_order.py
 # @Software: PyCharm
+import copy
 import json
 import os
 import time
@@ -27,13 +28,16 @@ class GrabOrder(object):
         self.__alipay_pic = self.__user_info.get("alipay")
         self.__alipay_pic_path = self.__get_pic_path(self.__alipay_pic)
         self.__alipay_url = self.__get_alipay_url(self.__alipay_pic_path)
-        self.__open_index = 0
-        self.__open_list = self.__user_info.get("open_list")
-        self.__open_length = len(self.__open_list)
-        self.log.info("当前收款账号数目: length = {}".format(self.__open_length))
+
         self.__phone = self.__user_info.get("alipay").split(".")[0]
         self.log.info("当前账户支付宝对应手机号码: {}".format(self.__phone))
         self.__cookie = self.__user_info.get("cookie")
+
+        # 获取收款码列表
+        self.__open_index = 0
+        self.__open_list = self.get_qr_list()
+        self.__open_length = len(self.__open_list)
+        self.log.info("当前收款账号数目: length = {}".format(self.__open_length))
 
     def __get_pic_path(self, pic_name):
         system = self.__get_system_info()
@@ -281,11 +285,10 @@ class GrabOrder(object):
             self.__open_index %= self.__open_length
             self.log.info("当前使用帐户信息: {} open_index = {}".format(self.__user_id, self.__open_index))
 
-            param = self.__open_list[self.__open_index]
-            param_dict = json.loads(param)
+            param_dict = copy.deepcopy(self.__open_list[self.__open_index])
 
-            param_dict['AliveLastTime'] = "/Date({})/".format(int(time.time() * 1000))
-            param_dict['AccountCode'] = self.__alipay_url
+            param_dict['ChannelStatus'] = 1
+            param_dict['ChannelOrder'] = 0
 
             post_data = {
                 "token": self.__token,

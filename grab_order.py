@@ -6,13 +6,15 @@
 # @File    : grab_order.py
 # @Software: PyCharm
 import copy
+import datetime
 import json
 import os
+import shutil
 import time
 
 import requests
 
-from qr_code import decode_qr_code
+from qr_code import decode_qr_code, get_pic_base64
 
 
 class GrabOrder(object):
@@ -27,7 +29,6 @@ class GrabOrder(object):
                                             self.__token)
         self.__alipay_pic = self.__user_info.get("alipay")
         self.__alipay_pic_path = self.__get_pic_path(self.__alipay_pic)
-        self.__alipay_url = self.__get_alipay_url(self.__alipay_pic_path)
 
         self.__phone = self.__user_info.get("alipay").split(".")[0]
         self.log.info("当前账户支付宝对应手机号码: {}".format(self.__phone))
@@ -38,6 +39,9 @@ class GrabOrder(object):
         self.__open_list = self.get_qr_list()
         self.__open_length = len(self.__open_list)
         self.log.info("当前收款账号数目: length = {}".format(self.__open_length))
+
+        # 上传最新二维码
+        self.upload_gathering()
 
     def __get_pic_path(self, pic_name):
         system = self.__get_system_info()
@@ -391,8 +395,93 @@ class GrabOrder(object):
             self.log.exception(e)
             os._exit(0)
 
+    def __move_file(self, file_path):
+        bak_path = "./bak"
+        if not os.path.isfile(file_path):
+            self.log.error("文件不存在，不需要移动: {} file_path = {}".format(self.__user_id, file_path))
+            return
+
+        fpath, fname = os.path.split(file_path)  # 分离文件名和路径
+        name, suffix = fname.split(".")
+
+        new_name = name + "_" + datetime.datetime.now().strftime('%Y-%m-%d#%H:%M:%S') + "." + suffix
+        if not os.path.exists(bak_path):
+            os.makedirs(bak_path)
+
+        shutil.move(file_path, os.path.join(bak_path, new_name))
+
     def upload_gathering(self):
-        pass
+
+        # 判断图片是否存在，如果存在则上传，不存在则不上传
+        if not os.path.exists(self.__alipay_pic_path):
+            self.log.info("当前二维码不存在,不上传: {} pic_name = {} pic_path = {}".format(
+                self.__user_id, self.__alipay_pic, self.__alipay_pic_path
+            ))
+            return
+
+        url = 'http://h52h.5188wangzhuan.com/api/v2.0/saveQrcode?version=2.0'
+
+        headers = {
+            'Host': 'h52h.5188wangzhuan.com',
+            'Connection': 'keep-alive',
+            'Content-Length': '13801',
+            'Accept': 'application/json, text/plain, */*',
+            'Origin': 'http://h52h.5188wangzhuan.com',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 9; COL-AL10 Build/HUAWEICOL-AL10; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/76.0.3809.132 Mobile Safari/537.36 Html5Plus/1.0 (Immersed/35.294117)',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'io.dcloud.W2Axx.lh',
+            'Referer': 'http://h52h.5188wangzhuan.com/index.html?v=2.3',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Cookie': self.__cookie
+        }
+
+        for param_dict in self.__open_list:
+            qrcode_dict = copy.deepcopy(param_dict)
+            qrcode_dict['ChannelName'] = self.__phone
+            qrcode_dict['ChannelRemark'] = self.__phone[-4:]
+            post_data = {
+                "token": self.__token,
+                "qrcode": json.dumps(qrcode_dict),
+                "pass": self.__password,
+                "files": get_pic_base64(self.__alipay_pic_path)
+            }
+
+            try:
+                resp = requests.post(url=url, headers=headers, data=post_data)
+                if resp is None:
+                    self.log.error("当前请求站点异常，退出流程: {}".format(self.__user_id))
+                    os._exit(0)
+
+                if resp.status_code != 200:
+                    self.log.error("请求站点状态码异常: {} url = {} code = {}".format(
+                        self.__user_id, url, resp.status_code))
+                    os._exit(0)
+
+                self.log.info("日志: {} {} {}".format(self.__user_id, url, resp.text))
+
+                json_data = resp.json()
+                if json_data is None:
+                    self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
+                    os._exit(0)
+
+                code = json_data.get("code")
+                if code != 0:
+                    self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
+                    os._exit(0)
+
+                self.log.info("图片保存结果: {} pic_name = {} result = {}".format(
+                    self.__user_id, self.__alipay_pic, resp.text))
+            except Exception as e:
+                self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
+                self.log.exception(e)
+                os._exit(0)
+
+        # 重新获取最新的二维码信息
+        self.__open_list = self.get_qr_list()
+
+        # 移动图片到备份目录
+        self.__move_file(self.__alipay_pic_path)
 
     def run(self):
         self.log.info("开始启动抢单: {} {} {}".format(self.__phone, self.__user_id, self.__account))
@@ -415,7 +504,7 @@ class GrabOrder(object):
                 time.sleep(20)
 
 
-if __name__ == '__main__':
+def main():
     from logger import Logger
 
     log = Logger('wangzhuan_test.log').get_logger()
@@ -424,3 +513,9 @@ if __name__ == '__main__':
     grab = GrabOrder(ACCOUNT_LIST[1], log)
 
     log.info(grab.get_qr_list())
+
+    grab.upload_gathering()
+
+
+if __name__ == '__main__':
+    main()

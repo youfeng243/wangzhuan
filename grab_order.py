@@ -520,9 +520,6 @@ class GrabOrder(object):
                 time.sleep(2)
                 continue
 
-            # 抢单前获取最新配置列表
-            self.__open_list = self.get_qr_list()
-
             # 创建最新的二维码 到save目录 同名
             new_qr_code_path = self.__create_new_qr_code()
 

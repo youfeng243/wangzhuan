@@ -40,6 +40,6 @@ if __name__ == '__main__':
     # save_qr_code("https://qr.alipay.com/fkx11018z9gypgjao0wwm19?t=1582883541195", "1111.jpg")
 
     # print(decode_qr_code('./picture/WechatIMG463.jpeg'))
-    # print(decode_qr_code('./picture/13532369240.jpeg'))
-    print(decode_qr_code('./save/13302963506.jpg'))
+    print(decode_qr_code('./picture/13302963506.jpg'))
+    # print(decode_qr_code('./save/13302963506.jpg'))
     # print(get_pic_base64("./picture/13532369240.jpeg"))

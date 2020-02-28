@@ -9,6 +9,7 @@ import copy
 import datetime
 import json
 import os
+import random
 import shutil
 import time
 
@@ -457,19 +458,19 @@ class GrabOrder(object):
                 if resp.status_code != 200:
                     self.log.error("请求站点状态码异常: {} url = {} code = {}".format(
                         self.__user_id, url, resp.status_code))
-                    os._exit(0)
+                    return
 
                 self.log.info("日志: {} {} {}".format(self.__user_id, url, resp.text))
 
                 json_data = resp.json()
                 if json_data is None:
                     self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
-                    os._exit(0)
+                    return
 
                 code = json_data.get("code")
                 if code != 0:
                     self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
-                    os._exit(0)
+                    return
 
                 self.log.info("图片保存结果: {} pic_path = {} result = {}".format(
                     self.__user_id, pic_path, resp.text))
@@ -528,13 +529,11 @@ class GrabOrder(object):
             # 从save目录 上传最新二维码配置
             self.upload_gathering(new_qr_code_path)
 
-            # 从新获取最新的配置信息
-            self.__open_list = self.get_qr_list()
-
             # 开启抢单 休眠3s
             if self.__open_listen_order():
                 self.log.info("开启抢单，休眠20秒: {} {} {}".format(self.__phone, self.__user_id, self.__account))
-                time.sleep(25)
+                sleep_time = random.randint(20, 26)
+                time.sleep(sleep_time)
 
         self.log.info("当前线程正常退出: user_id = {} phone = {} account = {}".format(
             self.__user_id, self.__phone, self.__account))

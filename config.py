@@ -31,6 +31,6 @@ ACCOUNT_LIST = [
         "token": 'VsImDWrWasXLrZpXtGo4V+5fZuYx0FdQTqduR3MCzQJIwr49o8ctpWYLUXKKhK4bK4GR8SxY4qyfHKKsuOxL0bS/G9zdMJck61cxUMEzdcyq031iNPCvpt9vCfL7x7j2',
         "alipay": "13532369240.jpeg",
         'cookie': 'ASP.NET_SessionId=hosfkm0uunxejbsbwkie22tt',
-        "start": True
+        "start": False
     },
 ]

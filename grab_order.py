@@ -15,7 +15,7 @@ import time
 import requests
 
 from play_audio import play_hint_audio
-from qr_code import decode_qr_code, get_pic_base64
+from qr_code import decode_qr_code, get_pic_base64, save_qr_code
 
 is_running = True
 
@@ -43,7 +43,7 @@ class GrabOrder(object):
         self.log.info("当前收款账号数目: length = {}".format(len(self.__open_list)))
 
         # 上传最新二维码
-        self.upload_gathering()
+        self.upload_gathering(self.__alipay_pic_path)
 
     def __get_pic_path(self, pic_name):
         system = self.__get_system_info()
@@ -412,13 +412,12 @@ class GrabOrder(object):
 
         shutil.move(file_path, os.path.join(bak_path, new_name))
 
-    def upload_gathering(self):
+    def upload_gathering(self, pic_path):
 
         # 判断图片是否存在，如果存在则上传，不存在则不上传
-        if not os.path.exists(self.__alipay_pic_path):
-            self.log.info("当前二维码不存在,不上传: {} pic_name = {} pic_path = {}".format(
-                self.__user_id, self.__alipay_pic, self.__alipay_pic_path
-            ))
+        if not os.path.exists(pic_path):
+            self.log.info("当前二维码不存在,不上传: {} pic_path = {}".format(
+                self.__user_id, pic_path))
             return
 
         url = 'http://h52h.5188wangzhuan.com/api/v2.0/saveQrcode?version=2.0'
@@ -446,7 +445,7 @@ class GrabOrder(object):
                 "token": self.__token,
                 "qrcode": json.dumps(qrcode_dict),
                 "pass": self.__password,
-                "files": get_pic_base64(self.__alipay_pic_path)
+                "files": get_pic_base64(pic_path)
             }
 
             try:
@@ -472,8 +471,8 @@ class GrabOrder(object):
                     self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
                     os._exit(0)
 
-                self.log.info("图片保存结果: {} pic_name = {} result = {}".format(
-                    self.__user_id, self.__alipay_pic, resp.text))
+                self.log.info("图片保存结果: {} pic_path = {} result = {}".format(
+                    self.__user_id, pic_path, resp.text))
             except Exception as e:
                 self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
                 self.log.exception(e)
@@ -483,7 +482,22 @@ class GrabOrder(object):
         self.__open_list = self.get_qr_list()
 
         # 移动图片到备份目录
-        # self.__move_file(self.__alipay_pic_path)
+        # self.__move_file(pic_path)
+
+    # 创建最新的二维码
+    def __create_new_qr_code(self):
+        # 先获取最新的支付宝链接
+        full_url = self.__open_list[0].get("AccountCode")
+        url = full_url.split("?t=")[0]
+        self.log.info("当前分解出来url {} url = {}".format(self.__user_id, url))
+        url += "?t=" + str(int(time.time() * 1000))
+        self.log.info("当前合并的url为: {} url = {}".format(self.__user_id, url))
+
+        qr_code_path = "./save/" + self.__alipay_pic
+        # 存储最新的二维码
+        save_qr_code(url, qr_code_path)
+
+        return qr_code_path
 
     def run(self):
         self.log.info("开始启动抢单: {} {} {}".format(self.__phone, self.__user_id, self.__account))
@@ -505,13 +519,23 @@ class GrabOrder(object):
                 time.sleep(2)
                 continue
 
+            # 抢单前获取最新配置列表
+            self.__open_list = self.get_qr_list()
+
+            # 创建最新的二维码 到save目录 同名
+            new_qr_code_path = self.__create_new_qr_code()
+
+            # 从save目录 上传最新二维码配置
+            self.upload_gathering(new_qr_code_path)
+
+            # 从新获取最新的配置信息
+            self.__open_list = self.get_qr_list()
+
             # 开启抢单 休眠3s
             if self.__open_listen_order():
                 self.log.info("开启抢单，休眠20秒: {} {} {}".format(self.__phone, self.__user_id, self.__account))
                 time.sleep(25)
 
-            # 重新抢单后获取配置列表
-            self.__open_list = self.get_qr_list()
         self.log.info("当前线程正常退出: user_id = {} phone = {} account = {}".format(
             self.__user_id, self.__phone, self.__account))
 
@@ -526,7 +550,7 @@ def main():
 
     log.info(grab.get_qr_list())
 
-    grab.upload_gathering()
+    grab.upload_gathering("./picture/13302963506.jpg")
 
 
 if __name__ == '__main__':

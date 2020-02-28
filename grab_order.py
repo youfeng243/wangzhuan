@@ -483,7 +483,7 @@ class GrabOrder(object):
         self.__open_list = self.get_qr_list()
 
         # 移动图片到备份目录
-        self.__move_file(self.__alipay_pic_path)
+        # self.__move_file(self.__alipay_pic_path)
 
     def run(self):
         self.log.info("开始启动抢单: {} {} {}".format(self.__phone, self.__user_id, self.__account))

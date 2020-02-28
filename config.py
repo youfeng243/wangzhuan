@@ -11,7 +11,7 @@ ACCOUNT_LIST = [
         "username": "16860684261",
         "password": "zhen1991",
         "token": 'kVcJcoilMXWIvcpJV7FLONVzneaveDaphs8tAenbG3ovzC73Z8uD+pZ5eZC8H9l1FS+vsYfi9qpyjFpBZZSqQSVx8h2obf+bXJa0ZNiTdFZEE7p7bOldI80qpsvpo+0TyTP9K8+Y45yL/3utJWBq5Q==',
-        "alipay": "13302963146.jpeg",
+        "alipay": "13302963506.jpg",
         'cookie': 'ASP.NET_SessionId=egz0pkbgoamqpd54pcmvmvyx',
         # 开关, True代表可用  False代表不启用
         "start": True
@@ -29,8 +29,8 @@ ACCOUNT_LIST = [
         "username": "36860684261",
         "password": "zhen1991",
         "token": 'VsImDWrWasXLrZpXtGo4V+5fZuYx0FdQTqduR3MCzQJIwr49o8ctpWYLUXKKhK4bK4GR8SxY4qyfHKKsuOxL0bS/G9zdMJck61cxUMEzdcyq031iNPCvpt9vCfL7x7j2',
-        "alipay": "13532369240.jpeg",
+        "alipay": "13302963506.jpg",
         'cookie': 'ASP.NET_SessionId=hosfkm0uunxejbsbwkie22tt',
-        "start": False
+        "start": True
     },
 ]

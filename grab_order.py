@@ -11,6 +11,7 @@ import json
 import os
 import random
 import shutil
+import threading
 import time
 
 import requests
@@ -494,7 +495,7 @@ class GrabOrder(object):
         url += "?t=" + str(int(time.time() * 1000))
         self.log.info("当前合并的url为: {} url = {}".format(self.__user_id, url))
 
-        qr_code_path = "./save/" + self.__alipay_pic
+        qr_code_path = "./save/" + str(threading.currentThread().ident) + "_" + self.__alipay_pic
         # 存储最新的二维码
         save_qr_code(url, qr_code_path)
 

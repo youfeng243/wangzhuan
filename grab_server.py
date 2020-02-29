@@ -13,7 +13,6 @@ from common.mysql import MySQL
 from grab_api import GrabAPI
 from grab_thread import GrabThread
 from logger import Logger
-from update_alipay_config import UpdateAliPayConfig
 
 log = Logger('wangzhuan.log').get_logger()
 
@@ -74,16 +73,12 @@ def main():
     # 这里上传最新账号支付宝二维码到海蓝账户
     update_qr_code(grab_list, alipay_account)
 
-    # 再运行 定时更新验证码线程
-    update_thread = UpdateAliPayConfig(grab_list, log)
-
     # 运行抢单线程池
     for grab_obj in grab_list:
         grab_thread = GrabThread(sql_obj, grab_obj, log)
         grab_thread_list.append(grab_thread)
 
     # 阻塞等待线程结束
-    update_thread.join()
     for grab_thread in grab_thread_list:
         grab_thread.join()
 

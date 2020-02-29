@@ -14,6 +14,7 @@ import time
 
 from common.date_util import get_cur_time
 from play_audio import play_hint_audio
+from qr_code import save_qr_code
 
 is_running = True
 
@@ -29,7 +30,7 @@ class GrabThread(threading.Thread):
         self.start()
 
     def __save_order(self, order_dict):
-        sql = """INSERT INTO `alipay_account` (`order_id`, `username`, `user_id`, `alipay_account`, `money`, `is_invalid`, `json`, `checkout`, `create_time`)
+        sql = """INSERT INTO `alipay_account_info` (`order_id`, `username`, `user_id`, `alipay_account`, `money`, `is_invalid`, `json`, `checkout`, `create_time`)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
 
         order_id = order_dict.get("OrderID")
@@ -77,6 +78,36 @@ class GrabThread(threading.Thread):
             self.log.error("当前所有帐户均不可用, 退出抢单: {}".format(self.__grab_obj.get_user_id()))
             os._exit(0)
 
+    def __create_new_qr_code(self, param_dict, alipay_account):
+        # 先获取最新的支付宝链接
+        full_url = param_dict.get("AccountCode")
+        url = full_url.split("?t=")[0]
+        self.log.info("当前分解出来url url = {}".format(url))
+        url += "?t=" + str(int(time.time() * 1000))
+        self.log.info("当前合并的url为: url = {}".format(url))
+
+        qr_code_path = "./save/" + alipay_account + "_" + str(threading.currentThread().ident) + ".jpeg"
+        # 存储最新的二维码
+        save_qr_code(url, qr_code_path)
+
+        return qr_code_path
+
+    def __update_config(self):
+        open_list = self.__grab_obj.request_qr_list()
+
+        # 获取到当前使用的支付宝信息
+        alipay_account = self.__grab_obj.get_alipay_account()
+
+        # 如果没有配置任何收款码信息 则不需要上传
+        if not isinstance(open_list, list):
+            return
+
+        # 获取最新的二维码
+        qr_code_path = self.__create_new_qr_code(open_list[0], alipay_account)
+
+        # 更新配置信息
+        self.__grab_obj.update_config(qr_code_path, open_list)
+
     def run(self):
         global is_running
         while is_running:
@@ -97,6 +128,9 @@ class GrabThread(threading.Thread):
                     "当前正在抢单,休眠2s: {} {}".format(self.__grab_obj.get_user_id(), self.__grab_obj.get_alipay_account()))
                 time.sleep(2)
                 continue
+
+            # 更新二维码
+            self.__update_config()
 
             # 开启抢单 休眠3s
             if self.open_listen_order():

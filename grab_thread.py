@@ -110,7 +110,25 @@ class GrabThread(threading.Thread):
 
     def run(self):
         global is_running
-        while is_running:
+        while True:
+
+            if not is_running:
+                while True:
+                    # 判断是否有订单 listenOrder 如有 则退出
+                    success, order_dict = self.__grab_obj.is_have_order()
+                    if success:
+                        self.__save_order(order_dict)
+                        break
+
+                    # 判断是否正在抢单， 如有 则休眠3s 重新判断是否有订单
+                    if self.__grab_obj.is_listen_order():
+                        self.log.info(
+                            "其他线程正在抢单,休眠2s: {} {}".format(self.__grab_obj.get_user_id(),
+                                                          self.__grab_obj.get_alipay_account()))
+                        time.sleep(2)
+                        continue
+                    break
+                break
 
             # 判断是否有订单 listenOrder 如有 则退出
             success, order_dict = self.__grab_obj.is_have_order()
@@ -119,7 +137,7 @@ class GrabThread(threading.Thread):
                 self.__save_order(order_dict)
                 # 这里播放语音
                 play_hint_audio()
-                os._exit(0)
+                break
 
             # 判断是否正在抢单， 如有 则休眠3s 重新判断是否有订单
             if self.__grab_obj.is_listen_order():

@@ -43,3 +43,6 @@ class CheckoutOrder(object):
             if answer == '1':
                 sql = 'update order_info set checkout = 1, is_invalid = 1 where id = {}'.format(order[0])
                 self.__sql_obj.execute(sql)
+            else:
+                sql = 'update order_info set checkout = 1 where id = {}'.format(order[0])
+                self.__sql_obj.execute(sql)

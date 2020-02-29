@@ -20,7 +20,6 @@ def run(grab_obj):
 
 def main():
     thread_list = []
-
     for user_info_dict in ACCOUNT_LIST:
         # 判断是否开启账户
         if user_info_dict.get("start"):

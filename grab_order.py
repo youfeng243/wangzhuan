@@ -5,13 +5,21 @@
 # @Site    : 
 # @File    : grab_order.py
 # @Software: PyCharm
+import copy
+import datetime
 import json
 import os
+import random
+import shutil
+import threading
 import time
 
 import requests
 
-from qr_code import decode_qr_code
+from play_audio import play_hint_audio
+from qr_code import decode_qr_code, get_pic_base64, save_qr_code
+
+is_running = True
 
 
 class GrabOrder(object):
@@ -26,14 +34,18 @@ class GrabOrder(object):
                                             self.__token)
         self.__alipay_pic = self.__user_info.get("alipay")
         self.__alipay_pic_path = self.__get_pic_path(self.__alipay_pic)
-        self.__alipay_url = self.__get_alipay_url(self.__alipay_pic_path)
-        self.__open_index = 0
-        self.__open_list = self.__user_info.get("open_list")
-        self.__open_length = len(self.__open_list)
-        self.log.info("当前收款账号数目: length = {}".format(self.__open_length))
+
         self.__phone = self.__user_info.get("alipay").split(".")[0]
         self.log.info("当前账户支付宝对应手机号码: {}".format(self.__phone))
         self.__cookie = self.__user_info.get("cookie")
+
+        # 获取收款码列表
+        self.__open_index = 0
+        self.__open_list = self.get_qr_list()
+        self.log.info("当前收款账号数目: length = {}".format(len(self.__open_list)))
+
+        # 上传最新二维码
+        self.upload_gathering(self.__alipay_pic_path)
 
     def __get_pic_path(self, pic_name):
         system = self.__get_system_info()
@@ -274,18 +286,17 @@ class GrabOrder(object):
         cnt = 0
 
         # 遍历所有的帐户，如果所有帐户均不可用，则需要退出抢单 并提示错误
-        while cnt < self.__open_length:
+        while cnt < len(self.__open_list):
             cnt += 1
 
             self.__open_index += 1
-            self.__open_index %= self.__open_length
+            self.__open_index %= len(self.__open_list)
             self.log.info("当前使用帐户信息: {} open_index = {}".format(self.__user_id, self.__open_index))
 
-            param = self.__open_list[self.__open_index]
-            param_dict = json.loads(param)
+            param_dict = copy.deepcopy(self.__open_list[self.__open_index])
 
-            param_dict['AliveLastTime'] = "/Date({})/".format(int(time.time() * 1000))
-            param_dict['AccountCode'] = self.__alipay_url
+            param_dict['ChannelStatus'] = 1
+            param_dict['ChannelOrder'] = 0
 
             post_data = {
                 "token": self.__token,
@@ -323,7 +334,7 @@ class GrabOrder(object):
                 self.log.exception(e)
                 os._exit(0)
 
-        if cnt >= self.__open_length:
+        if cnt >= len(self.__open_list):
             self.log.error("当前所有帐户均不可用, 退出抢单: {} url = {}".format(self.__user_id, url))
             os._exit(0)
 
@@ -388,16 +399,120 @@ class GrabOrder(object):
             self.log.exception(e)
             os._exit(0)
 
-    def upload_gathering(self):
-        pass
+    def __move_file(self, file_path):
+        bak_path = "./bak"
+        if not os.path.isfile(file_path):
+            self.log.error("文件不存在，不需要移动: {} file_path = {}".format(self.__user_id, file_path))
+            return
+
+        fpath, fname = os.path.split(file_path)  # 分离文件名和路径
+        name, suffix = fname.split(".")
+
+        new_name = name + "_" + datetime.datetime.now().strftime('%Y-%m-%d#%H:%M:%S') + "." + suffix
+        if not os.path.exists(bak_path):
+            os.makedirs(bak_path)
+
+        shutil.move(file_path, os.path.join(bak_path, new_name))
+
+    def upload_gathering(self, pic_path):
+
+        # 判断图片是否存在，如果存在则上传，不存在则不上传
+        if not os.path.exists(pic_path):
+            self.log.info("当前二维码不存在,不上传: {} pic_path = {}".format(
+                self.__user_id, pic_path))
+            return
+
+        url = 'http://h52h.5188wangzhuan.com/api/v2.0/saveQrcode?version=2.0'
+
+        headers = {
+            'Host': 'h52h.5188wangzhuan.com',
+            'Connection': 'keep-alive',
+            'Content-Length': '13801',
+            'Accept': 'application/json, text/plain, */*',
+            'Origin': 'http://h52h.5188wangzhuan.com',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 9; COL-AL10 Build/HUAWEICOL-AL10; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/76.0.3809.132 Mobile Safari/537.36 Html5Plus/1.0 (Immersed/35.294117)',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'io.dcloud.W2Axx.lh',
+            'Referer': 'http://h52h.5188wangzhuan.com/index.html?v=2.3',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Cookie': self.__cookie
+        }
+
+        for param_dict in self.__open_list:
+            qrcode_dict = copy.deepcopy(param_dict)
+            qrcode_dict['ChannelName'] = self.__phone
+            qrcode_dict['ChannelRemark'] = self.__phone[-4:]
+            post_data = {
+                "token": self.__token,
+                "qrcode": json.dumps(qrcode_dict),
+                "pass": self.__password,
+                "files": get_pic_base64(pic_path)
+            }
+
+            try:
+                resp = requests.post(url=url, headers=headers, data=post_data)
+                if resp is None:
+                    self.log.error("当前请求站点异常，退出流程: {}".format(self.__user_id))
+                    os._exit(0)
+
+                if resp.status_code != 200:
+                    self.log.error("请求站点状态码异常: {} url = {} code = {}".format(
+                        self.__user_id, url, resp.status_code))
+                    return
+
+                self.log.info("日志: {} {} {}".format(self.__user_id, url, resp.text))
+
+                json_data = resp.json()
+                if json_data is None:
+                    self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
+                    return
+
+                code = json_data.get("code")
+                if code != 0:
+                    self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
+                    return
+
+                self.log.info("图片保存结果: {} pic_path = {} result = {}".format(
+                    self.__user_id, pic_path, resp.text))
+            except Exception as e:
+                self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
+                self.log.exception(e)
+                os._exit(0)
+
+        # 重新获取最新的二维码信息
+        self.__open_list = self.get_qr_list()
+
+        # 移动图片到备份目录
+        # self.__move_file(pic_path)
+
+    # 创建最新的二维码
+    def __create_new_qr_code(self):
+        # 先获取最新的支付宝链接
+        full_url = self.__open_list[0].get("AccountCode")
+        url = full_url.split("?t=")[0]
+        self.log.info("当前分解出来url {} url = {}".format(self.__user_id, url))
+        url += "?t=" + str(int(time.time() * 1000))
+        self.log.info("当前合并的url为: {} url = {}".format(self.__user_id, url))
+
+        qr_code_path = "./save/" + str(threading.currentThread().ident) + "_" + self.__alipay_pic
+        # 存储最新的二维码
+        save_qr_code(url, qr_code_path)
+
+        return qr_code_path
 
     def run(self):
         self.log.info("开始启动抢单: {} {} {}".format(self.__phone, self.__user_id, self.__account))
+        global is_running
+        while is_running:
 
-        while True:
             # 判断是否有订单 listenOrder 如有 则退出
             if self.__have_order():
+                is_running = False
+                # 通知其他线程退出
                 self.log.info("当前存在订单，停止抢单! {} {} {}".format(self.__phone, self.__user_id, self.__account))
+                # 这里播放语音
+                play_hint_audio()
                 os._exit(0)
 
             # 判断是否正在抢单， 如有 则休眠3s 重新判断是否有订单
@@ -406,13 +521,23 @@ class GrabOrder(object):
                 time.sleep(2)
                 continue
 
+            # 创建最新的二维码 到save目录 同名
+            new_qr_code_path = self.__create_new_qr_code()
+
+            # 从save目录 上传最新二维码配置
+            self.upload_gathering(new_qr_code_path)
+
             # 开启抢单 休眠3s
             if self.__open_listen_order():
                 self.log.info("开启抢单，休眠20秒: {} {} {}".format(self.__phone, self.__user_id, self.__account))
-                time.sleep(20)
+                sleep_time = random.randint(20, 26)
+                time.sleep(sleep_time)
+
+        self.log.info("当前线程正常退出: user_id = {} phone = {} account = {}".format(
+            self.__user_id, self.__phone, self.__account))
 
 
-if __name__ == '__main__':
+def main():
     from logger import Logger
 
     log = Logger('wangzhuan_test.log').get_logger()
@@ -421,3 +546,9 @@ if __name__ == '__main__':
     grab = GrabOrder(ACCOUNT_LIST[1], log)
 
     log.info(grab.get_qr_list())
+
+    grab.upload_gathering("./picture/13302963506.jpg")
+
+
+if __name__ == '__main__':
+    main()

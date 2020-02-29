@@ -30,7 +30,7 @@ class GrabThread(threading.Thread):
         self.start()
 
     def __save_order(self, order_dict):
-        sql = """INSERT INTO `alipay_account_info` (`order_id`, `username`, `user_id`, `alipay_account`, `money`, `is_invalid`, `json`, `checkout`, `create_time`)
+        sql = """INSERT INTO `order_info` (`order_id`, `username`, `user_id`, `alipay_account`, `money`, `is_invalid`, `json`, `checkout`, `create_time`)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
 
         order_id = order_dict.get("OrderID")

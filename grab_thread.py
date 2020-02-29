@@ -115,9 +115,8 @@ class GrabThread(threading.Thread):
             # 判断是否有订单 listenOrder 如有 则退出
             success, order_dict = self.__grab_obj.is_have_order()
             if success:
-                self.__save_order(order_dict)
-
                 is_running = False
+                self.__save_order(order_dict)
                 # 这里播放语音
                 play_hint_audio()
                 os._exit(0)

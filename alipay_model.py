@@ -16,8 +16,11 @@ class AliPayModel(object):
     # 每个支付宝一天内最多接20单
     MAX_ORDER_NUM = 20
 
-    # 每个支付宝最大接单 8000
+    # 每个支付宝接单额度 8000
     MAX_ORDER_MONEY = 8000
+
+    # 支付宝最大额度
+    MAX_PAY_MONEY = 20000
 
     def __init__(self, sql_obj, log):
         self.log = log
@@ -48,7 +51,8 @@ class AliPayModel(object):
             order_num = len(order_list)
             total_money = sum(order_list)
 
-            if order_num >= self.MAX_ORDER_NUM and total_money >= self.MAX_ORDER_MONEY:
+            if (order_num >= self.MAX_ORDER_NUM and total_money >= self.MAX_ORDER_MONEY) or \
+                    total_money >= self.MAX_PAY_MONEY:
                 continue
 
             if min_money > total_money:

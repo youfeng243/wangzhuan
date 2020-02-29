@@ -16,7 +16,10 @@ class CheckoutOrder(object):
         self.__sql_obj = sql_obj
         self.log = log
 
-    def check_order(self):
+        # 校验订单是否为空单
+        self.__check_order()
+
+    def __check_order(self):
         '''
         获取所有未校验的订单
         :return:

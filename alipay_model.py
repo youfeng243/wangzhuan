@@ -44,8 +44,6 @@ class AliPayModel(object):
         min_order_num = 99999
         min_money = 200000
 
-        param_dict = dict()
-
         for account, order_list in order_dict.items():
             order_num = len(order_list)
             total_money = sum(order_list)
@@ -68,10 +66,6 @@ class AliPayModel(object):
                 min_order_num = order_num
                 continue
 
-            param_dict[account] = {
-                "order_num": len(order_list),
-                "total_money": sum(order_list)
-            }
         if best_account is None:
             self.log.info("当前所有账户都超出额度，停止抢单！！！！")
             os._exit(0)
@@ -82,7 +76,7 @@ class AliPayModel(object):
         sql = 'select alipay_account, money from order_info where is_invalid = 0 and checkout = 1 and to_days(create_time)=to_days(now())'
 
         result_list = self.__sql_obj.find_all(sql)
-        if not isinstance(result_list, list):
+        if not isinstance(result_list, tuple):
             self.log.error("获取订单数据失败")
             os._exit(0)
 
@@ -110,7 +104,7 @@ class AliPayModel(object):
         '''
         sql = '''select account from alipay_account_info where start = 1'''
         result_list = self.__sql_obj.find_all(sql)
-        if not isinstance(result_list, list):
+        if not isinstance(result_list, tuple):
             self.log.error("获取支付宝账户失败...")
             os._exit(0)
 

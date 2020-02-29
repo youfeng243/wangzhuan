@@ -184,7 +184,7 @@ class GrabAPI(object):
         if not os.path.exists(pic_path):
             self.log.info("当前二维码不存在,不更新配置: {} pic_path = {}".format(
                 self.__user_id, pic_path))
-            return
+            return False
 
         url = 'http://h52h.5188wangzhuan.com/api/v2.0/saveQrcode?version=2.0'
 
@@ -223,19 +223,19 @@ class GrabAPI(object):
                 if resp.status_code != 200:
                     self.log.error("请求站点状态码异常: {} url = {} code = {}".format(
                         self.__user_id, url, resp.status_code))
-                    return
+                    return False
 
                 self.log.info("日志: {} {} {}".format(self.__user_id, url, resp.text))
 
                 json_data = resp.json()
                 if json_data is None:
                     self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
-                    return
+                    return False
 
                 code = json_data.get("code")
                 if code != 0:
                     self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
-                    return
+                    return False
 
                 self.log.info("图片保存结果: {} pic_path = {} result = {}".format(
                     self.__user_id, pic_path, resp.text))
@@ -243,6 +243,8 @@ class GrabAPI(object):
                 self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
                 self.log.exception(e)
                 os._exit(0)
+                return False
+        return True
 
     # 开启抢单 休眠3s
     def open_listen_order(self, param):

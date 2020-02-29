@@ -1,3 +1,4 @@
+pymysql
 qrcode
 pygame
 zxing==0.10

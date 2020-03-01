@@ -54,11 +54,11 @@ class GrabThread(threading.Thread):
 
         self.__sql_obj.insert_batch(sql, insert_list)
 
-    def __open_listen_order(self, channel_status):
-        # 先获取到最新的收款码信息
-        open_list = self.__grab_obj.request_qr_list()
-
+    def __open_listen_order(self, channel_status, open_list):
         cnt = 0
+
+        # 获取到最新二维码路径
+        pic_path = self.get_new_qrcode_path(open_list)
 
         # 遍历所有的帐户，如果所有帐户均不可用，则需要退出抢单 并提示错误
         while cnt < len(open_list):
@@ -69,6 +69,14 @@ class GrabThread(threading.Thread):
             self.log.info("当前使用帐户信息: {} open_index = {}".format(self.__grab_obj.get_user_id(), self.__open_index))
 
             param_dict = copy.deepcopy(open_list[self.__open_index])
+
+            #  先更新对应的配置
+            result = self.__grab_obj.update_index_config(pic_path, param_dict)
+            if result:
+                # 如果更新成功， 则重新获取最新的配置信息
+                open_list = self.__grab_obj.request_qr_list()
+                param_dict = copy.deepcopy(open_list[self.__open_index])
+
             param_dict['ChannelStatus'] = channel_status
             param_dict['ChannelOrder'] = 0
             success = self.__grab_obj.open_listen_order(param_dict)
@@ -98,9 +106,7 @@ class GrabThread(threading.Thread):
 
         return qr_code_path
 
-    def __update_config(self):
-        open_list = self.__grab_obj.request_qr_list()
-
+    def get_new_qrcode_path(self, open_list):
         # 获取到当前使用的支付宝信息
         alipay_account = self.__grab_obj.get_alipay_account()
 
@@ -109,15 +115,22 @@ class GrabThread(threading.Thread):
             return
 
         # 获取最新的二维码
-        qr_code_path = self.__create_new_qr_code(open_list[0], alipay_account)
+        return self.__create_new_qr_code(open_list[0], alipay_account)
 
-        # 更新配置信息
-        self.__grab_obj.update_config_all(qr_code_path, open_list)
+    # def __update_config(self, open_list):
+    #     # 获取最新的二维码
+    #     qr_code_path = self.get_new_qrcode_path(open_list)
+    #
+    #     # 更新配置信息
+    #     self.__grab_obj.update_config_all(qr_code_path, open_list)
 
     def run(self):
 
+        # # 先获取到最新的收款码信息
+        open_list = self.__grab_obj.request_qr_list()
+
         # 如果有正在抢单 则先取消抢单
-        self.__open_listen_order(0)
+        self.__open_listen_order(0, open_list)
 
         global is_running
         while True:
@@ -156,11 +169,11 @@ class GrabThread(threading.Thread):
                 time.sleep(2)
                 continue
 
-            # 更新二维码
-            self.__update_config()
+            # 获取最新收款码配置
+            open_list = self.__grab_obj.request_qr_list()
 
             # 开启抢单 休眠3s
-            if self.__open_listen_order(1):
+            if self.__open_listen_order(1, open_list):
                 sleep_time = random.randint(20, 26)
                 self.log.info("开启抢单，休眠{}秒: {} {}".format(sleep_time, self.__grab_obj.get_user_id(),
                                                          self.__grab_obj.get_alipay_account()))

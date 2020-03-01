@@ -183,14 +183,7 @@ class GrabAPI(object):
         self.log.error("请求收款码信息失败: {} {}".format(self.__user_id, self.__username))
         os._exit(0)
 
-    def update_config_all(self, pic_path, open_list):
-        '''
-        上传配置信息
-        :param pic_path:
-        :param open_list:
-        :return:
-        '''
-
+    def update_index_config(self, pic_path, param):
         # 判断图片是否存在，如果存在则上传，不存在则不上传
         if not os.path.exists(pic_path):
             self.log.info("当前二维码不存在,不更新配置: {} pic_path = {}".format(
@@ -214,50 +207,65 @@ class GrabAPI(object):
             'Cookie': self.__cookie
         }
 
-        for param_dict in open_list:
-            qrcode_dict = copy.deepcopy(param_dict)
-            qrcode_dict['ChannelName'] = self.__alipay_account
-            qrcode_dict['ChannelRemark'] = ""
-            post_data = {
-                "token": self.__token,
-                "qrcode": json.dumps(qrcode_dict),
-                "pass": self.__password,
-                "files": get_pic_base64(pic_path)
-            }
+        qrcode_dict = copy.deepcopy(param)
+        qrcode_dict['ChannelName'] = self.__alipay_account
+        qrcode_dict['ChannelRemark'] = ""
+        post_data = {
+            "token": self.__token,
+            "qrcode": json.dumps(qrcode_dict),
+            "pass": self.__password,
+            "files": get_pic_base64(pic_path)
+        }
 
-            for _ in range(3):
-                try:
-                    resp = requests.post(url=url, headers=headers, data=post_data)
-                    if resp is None:
-                        self.log.error("当前请求站点异常，退出流程: {}".format(self.__user_id))
-                        time.sleep(1)
-                        continue
-
-                    if resp.status_code != 200:
-                        self.log.error("请求站点状态码异常: {} url = {} code = {}".format(
-                            self.__user_id, url, resp.status_code))
-                        time.sleep(1)
-                        continue
-
-                    self.log.info("日志: {} {} {}".format(self.__user_id, url, resp.text))
-
-                    json_data = resp.json()
-                    if json_data is None:
-                        self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
-                        return False
-
-                    code = json_data.get("code")
-                    if code != 0:
-                        self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
-                        return False
-
-                    self.log.info("图片保存结果: {} pic_path = {} result = {}".format(
-                        self.__user_id, pic_path, resp.text))
-                except Exception as e:
-                    self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
-                    self.log.exception(e)
+        for _ in range(3):
+            try:
+                resp = requests.post(url=url, headers=headers, data=post_data)
+                if resp is None:
+                    self.log.error("当前请求站点异常，退出流程: {}".format(self.__user_id))
                     time.sleep(1)
                     continue
+
+                if resp.status_code != 200:
+                    self.log.error("请求站点状态码异常: {} url = {} code = {}".format(
+                        self.__user_id, url, resp.status_code))
+                    time.sleep(1)
+                    continue
+
+                self.log.info("日志: {} {} {}".format(self.__user_id, url, resp.text))
+
+                json_data = resp.json()
+                if json_data is None:
+                    self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
+                    return False
+
+                code = json_data.get("code")
+                if code != 0:
+                    self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
+                    return False
+
+                self.log.info("图片保存结果: {} pic_path = {} result = {}".format(
+                    self.__user_id, pic_path, resp.text))
+                return True
+            except Exception as e:
+                self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
+                self.log.exception(e)
+                time.sleep(1)
+                continue
+        return False
+
+    def update_config_all(self, pic_path, open_list):
+        '''
+        上传配置信息
+        :param pic_path:
+        :param open_list:
+        :return:
+        '''
+
+        for param_dict in open_list:
+            success = self.update_index_config(pic_path, param_dict)
+            if not success:
+                return False
+
         return True
 
     # 开启抢单 休眠3s

@@ -112,7 +112,7 @@ class GrabThread(threading.Thread):
         qr_code_path = self.__create_new_qr_code(open_list[0], alipay_account)
 
         # 更新配置信息
-        self.__grab_obj.update_config(qr_code_path, open_list)
+        self.__grab_obj.update_config_all(qr_code_path, open_list)
 
     def run(self):
 

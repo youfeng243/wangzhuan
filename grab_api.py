@@ -183,7 +183,7 @@ class GrabAPI(object):
         self.log.error("请求收款码信息失败: {} {}".format(self.__user_id, self.__username))
         os._exit(0)
 
-    def update_config(self, pic_path, open_list):
+    def update_config_all(self, pic_path, open_list):
         '''
         上传配置信息
         :param pic_path:

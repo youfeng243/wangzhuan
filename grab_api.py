@@ -351,47 +351,51 @@ class GrabAPI(object):
             "token": self.__token,
         }
 
-        try:
-            resp = requests.post(url=url, headers=headers, data=post_data)
-            if resp is None:
-                self.log.error("当前请求站点异常，退出流程: {}".format(self.__user_id))
-                os._exit(0)
+        for _ in range(3):
+            try:
+                resp = requests.post(url=url, headers=headers, data=post_data)
+                if resp is None:
+                    self.log.error("当前请求站点异常，退出流程: {}".format(self.__user_id))
+                    time.sleep(1)
+                    continue
 
-            if resp.status_code != 200:
-                self.log.error("请求站点状态码异常: {} url = {} code = {}".format(
-                    self.__user_id, url, resp.status_code))
-                os._exit(0)
+                if resp.status_code != 200:
+                    self.log.error("请求站点状态码异常: {} url = {} code = {}".format(
+                        self.__user_id, url, resp.status_code))
+                    time.sleep(1)
+                    continue
 
-            self.log.info("日志: {} {} {}".format(self.__user_id, url, resp.text))
+                self.log.info("日志: {} {} {}".format(self.__user_id, url, resp.text))
 
-            json_data = resp.json()
-            if json_data is None:
-                self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
-                os._exit(0)
+                json_data = resp.json()
+                if json_data is None:
+                    self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
+                    os._exit(0)
 
-            code = json_data.get("code")
-            if code != 0:
-                self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
-                os._exit(0)
+                code = json_data.get("code")
+                if code != 0:
+                    self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
+                    os._exit(0)
 
-            result = json_data.get('result')
-            if not isinstance(result, list):
-                self.log.error("当前result数据格式不正确: {} url = {} data = {}".format(self.__user_id, url, resp.text))
-                os._exit(0)
+                result = json_data.get('result')
+                if not isinstance(result, list):
+                    self.log.error("当前result数据格式不正确: {} url = {} data = {}".format(self.__user_id, url, resp.text))
+                    os._exit(0)
 
-            if len(result) > 0:
-                order_dict = result[0]
-                if isinstance(order_dict, dict):
-                    self.log.info("###################订单信息###################")
-                    self.log.info("当前订单: {} {} {}".format(self.__user_id, self.__alipay_account, self.__username))
-                    self.log.info("{}".format(json.dumps(order_dict, indent=4, ensure_ascii=False)))
-                return True, order_dict
+                if len(result) > 0:
+                    order_dict = result[0]
+                    if isinstance(order_dict, dict):
+                        self.log.info("###################订单信息###################")
+                        self.log.info("当前订单: {} {} {}".format(self.__user_id, self.__alipay_account, self.__username))
+                        self.log.info("{}".format(json.dumps(order_dict, indent=4, ensure_ascii=False)))
+                    return True, order_dict
 
-            return False, None
-        except Exception as e:
-            self.log.error("请求判断订单信息异常，退出流程")
-            self.log.exception(e)
-            os._exit(0)
+                return False, None
+            except Exception as e:
+                self.log.error("请求判断订单信息异常，退出流程")
+                self.log.exception(e)
+                time.sleep(1)
+                continue
 
         return False, None
 

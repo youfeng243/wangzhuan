@@ -8,6 +8,7 @@
 import copy
 import json
 import os
+import time
 
 import requests
 
@@ -76,40 +77,45 @@ class GrabAPI(object):
             "token": self.__token,
         }
 
-        try:
-            resp = requests.post(url=url, headers=headers, data=post_data)
-            if resp is None:
-                self.log.error("当前请求站点异常，退出流程")
-                os._exit(0)
+        for _ in range(3):
+            try:
+                resp = requests.post(url=url, headers=headers, data=post_data)
+                if resp is None:
+                    self.log.error("当前请求站点异常，退出流程")
+                    time.sleep(1)
+                    continue
 
-            if resp.status_code != 200:
-                self.log.error("请求站点状态码异常: url = {} code = {}".format(
-                    url, resp.status_code))
-                os._exit(0)
+                if resp.status_code != 200:
+                    self.log.error("请求站点状态码异常: url = {} code = {}".format(
+                        url, resp.status_code))
+                    time.sleep(1)
+                    continue
 
-            self.log.info("日志: {} {}".format(url, resp.text))
+                self.log.info("日志: {} {}".format(url, resp.text))
 
-            json_data = resp.json()
-            if json_data is None:
-                self.log.error("返回数据包异常: url = {} json_data = None".format(url))
-                os._exit(0)
+                json_data = resp.json()
+                if json_data is None:
+                    self.log.error("返回数据包异常: url = {} json_data = None".format(url))
+                    os._exit(0)
 
-            code = json_data.get("code")
-            if code != 0:
-                self.log.error("请求返回code异常: url = {} data = {}".format(url, resp.text))
-                os._exit(0)
+                code = json_data.get("code")
+                if code != 0:
+                    self.log.error("请求返回code异常: url = {} data = {}".format(url, resp.text))
+                    os._exit(0)
 
-            # 这里解析到 userID account
-            user = json_data.get("user")
-            if not isinstance(user, dict):
-                self.log.error("解析用户信息失败: url = {} data = {}".format(url, resp.text))
-                os._exit(0)
+                # 这里解析到 userID account
+                user = json_data.get("user")
+                if not isinstance(user, dict):
+                    self.log.error("解析用户信息失败: url = {} data = {}".format(url, resp.text))
+                    os._exit(0)
 
-            return user.get("userid")
-        except Exception as e:
-            self.log.error("请求登录异常，退出流程")
-            self.log.exception(e)
-            os._exit(0)
+                return user.get("userid")
+            except Exception as e:
+                self.log.error("请求登录异常，退出流程")
+                self.log.exception(e)
+                time.sleep(1)
+        self.log.error("请求用户信息失败: {}".format(self.__username))
+        os._exit(0)
 
     def request_qr_list(self):
         '''

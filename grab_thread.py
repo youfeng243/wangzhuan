@@ -86,7 +86,11 @@ class GrabThread(threading.Thread):
         url += "?t=" + str(int(time.time() * 1000))
         self.log.info("当前合并的url为: url = {}".format(url))
 
-        qr_code_path = "./save/" + alipay_account + "_" + str(threading.currentThread().ident) + ".jpeg"
+        save_path = "./save/"
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
+        qr_code_path = save_path + alipay_account + "_" + str(threading.currentThread().ident) + ".jpeg"
         # 存储最新的二维码
         save_qr_code(url, qr_code_path)
 

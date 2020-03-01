@@ -272,9 +272,6 @@ class GrabAPI(object):
 
         param_dict = copy.deepcopy(param)
 
-        param_dict['ChannelStatus'] = 1
-        param_dict['ChannelOrder'] = 0
-
         post_data = {
             "token": self.__token,
             'channel': json.dumps(param_dict)

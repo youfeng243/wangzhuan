@@ -54,7 +54,7 @@ class GrabThread(threading.Thread):
 
         self.__sql_obj.insert_batch(sql, insert_list)
 
-    def open_listen_order(self):
+    def __open_listen_order(self, channel_status):
         # 先获取到最新的收款码信息
         open_list = self.__grab_obj.request_qr_list()
 
@@ -69,6 +69,8 @@ class GrabThread(threading.Thread):
             self.log.info("当前使用帐户信息: {} open_index = {}".format(self.__grab_obj.get_user_id(), self.__open_index))
 
             param_dict = copy.deepcopy(open_list[self.__open_index])
+            param_dict['ChannelStatus'] = channel_status
+            param_dict['ChannelOrder'] = 0
             success = self.__grab_obj.open_listen_order(param_dict)
             if not success:
                 continue
@@ -113,6 +115,10 @@ class GrabThread(threading.Thread):
         self.__grab_obj.update_config(qr_code_path, open_list)
 
     def run(self):
+
+        # 如果有正在抢单 则先取消抢单
+        self.__open_listen_order(0)
+
         global is_running
         while True:
 
@@ -154,7 +160,7 @@ class GrabThread(threading.Thread):
             self.__update_config()
 
             # 开启抢单 休眠3s
-            if self.open_listen_order():
+            if self.__open_listen_order(1):
                 sleep_time = random.randint(20, 26)
                 self.log.info("开启抢单，休眠{}秒: {} {}".format(sleep_time, self.__grab_obj.get_user_id(),
                                                          self.__grab_obj.get_alipay_account()))

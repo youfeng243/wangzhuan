@@ -422,39 +422,45 @@ class GrabAPI(object):
             "token": self.__token,
         }
 
-        try:
-            resp = requests.post(url=url, headers=headers, data=post_data)
-            if resp is None:
-                self.log.error("当前请求站点异常，退出流程: {}".format(self.__user_id))
+        for _ in range(3):
+            try:
+                resp = requests.post(url=url, headers=headers, data=post_data)
+                if resp is None:
+                    self.log.error("当前请求站点异常，退出流程: {}".format(self.__user_id))
+                    time.sleep(1)
+                    continue
+
+                if resp.status_code != 200:
+                    self.log.error("请求站点状态码异常: {} url = {} code = {}".format(
+                        self.__user_id, url, resp.status_code))
+                    time.sleep(1)
+                    continue
+
+                self.log.info("日志: {} {} {}".format(self.__user_id, url, resp.text))
+
+                json_data = resp.json()
+                if json_data is None:
+                    self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
+                    os._exit(0)
+
+                code = json_data.get("code")
+                if code != 0:
+                    self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
+                    os._exit(0)
+
+                listen = json_data.get('listen')
+                if listen == 0:
+                    return False
+
+                if listen == 1:
+                    return True
+
+                self.log.error("当前监听状态异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
                 os._exit(0)
-
-            if resp.status_code != 200:
-                self.log.error("请求站点状态码异常: {} url = {} code = {}".format(
-                    self.__user_id, url, resp.status_code))
-                os._exit(0)
-
-            self.log.info("日志: {} {} {}".format(self.__user_id, url, resp.text))
-
-            json_data = resp.json()
-            if json_data is None:
-                self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
-                os._exit(0)
-
-            code = json_data.get("code")
-            if code != 0:
-                self.log.error("请求返回code异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
-                os._exit(0)
-
-            listen = json_data.get('listen')
-            if listen == 0:
-                return False
-
-            if listen == 1:
-                return True
-
-            self.log.error("当前监听状态异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
-            os._exit(0)
-        except Exception as e:
-            self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
-            self.log.exception(e)
-            os._exit(0)
+            except Exception as e:
+                self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
+                self.log.exception(e)
+                time.sleep(1)
+                continue
+        self.log.error("监听订单接口三次异常: {}".format(self.__user_id))
+        os._exit(0)

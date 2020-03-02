@@ -177,7 +177,7 @@ class GrabAPI(object):
                 return qrcodes
 
             except Exception as e:
-                self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
+                self.log.error("请求判断订单信息异常: {}".format(self.__user_id))
                 self.log.exception(e)
                 time.sleep(1)
         self.log.error("请求收款码信息失败: {} {}".format(self.__user_id, self.__username))
@@ -247,7 +247,7 @@ class GrabAPI(object):
                     self.__user_id, pic_path, resp.text))
                 return True
             except Exception as e:
-                self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
+                self.log.error("请求判断订单信息异常: {}".format(self.__user_id))
                 self.log.exception(e)
                 time.sleep(1)
                 continue
@@ -329,7 +329,7 @@ class GrabAPI(object):
 
                 return True
             except Exception as e:
-                self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
+                self.log.error("请求判断订单信息异常: {}".format(self.__user_id))
                 self.log.exception(e)
                 time.sleep(1)
                 continue
@@ -400,7 +400,7 @@ class GrabAPI(object):
 
                 return False, None
             except Exception as e:
-                self.log.error("请求判断订单信息异常，退出流程")
+                self.log.error("请求判断订单信息异常")
                 self.log.exception(e)
                 time.sleep(1)
                 continue
@@ -466,7 +466,7 @@ class GrabAPI(object):
                 self.log.error("当前监听状态异常: {} url = {} data = {}".format(self.__user_id, url, resp.text))
                 os._exit(0)
             except Exception as e:
-                self.log.error("请求判断订单信息异常，退出流程: {}".format(self.__user_id))
+                self.log.error("请求判断订单信息异常: {}".format(self.__user_id))
                 self.log.exception(e)
                 time.sleep(1)
                 continue

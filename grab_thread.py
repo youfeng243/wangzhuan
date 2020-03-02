@@ -58,10 +58,11 @@ class GrabThread(threading.Thread):
 
         # 这里发送邮件
         send_dict = {
-            "user_id": self.__grab_obj.get_user_id(),
-            "username": self.__grab_obj.get_username(),
-            "alipay_account": self.__grab_obj.get_alipay_account(),
-            "order": order_dict
+            "会员ID": self.__grab_obj.get_user_id(),
+            "登录账号": self.__grab_obj.get_username(),
+            "支付宝账号": self.__grab_obj.get_alipay_account(),
+            "订单金额:": order_dict.get("OrderMoney"),
+            "订单详情": order_dict
         }
         send_mail_by_file("./mail.ini", send_dict, "lanhai订单{}".format(date_util.get_now_time()))
 

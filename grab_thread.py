@@ -12,7 +12,9 @@ import random
 import threading
 import time
 
+from common import date_util
 from common.date_util import get_cur_time
+from common.mail import send_mail_by_file
 from play_audio import play_hint_audio
 from qr_code import save_qr_code
 
@@ -53,6 +55,15 @@ class GrabThread(threading.Thread):
                         checkout, create_time)]
 
         self.__sql_obj.insert_batch(sql, insert_list)
+
+        # 这里发送邮件
+        send_dict = {
+            "user_id": self.__grab_obj.get_user_id(),
+            "username": self.__grab_obj.get_username(),
+            "alipay_account": self.__grab_obj.get_alipay_account(),
+            "order": order_dict
+        }
+        send_mail_by_file("./mail.ini", send_dict, "lanhai订单{}".format(date_util.get_now_time()))
 
     def __open_listen_order(self, channel_status, open_list):
         cnt = 0

@@ -57,7 +57,7 @@ def save_qr_code(pic_path, alipay_account):
     log.info("当前需要校验的链接: full_url = {} url = {}".format(full_url, url))
 
     # 获取到当天所有的二维码信息
-    sql = 'select account, url from alipay_account_record where account = {} and to_days(create_time)=to_days(now())'.format(
+    sql = 'select `account`, `url` from alipay_account_record where `account` = "{}" and to_days(`create_time`)=to_days(now())'.format(
         alipay_account)
 
     result_list = sql_obj.find_all(sql)

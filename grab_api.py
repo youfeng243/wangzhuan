@@ -325,7 +325,7 @@ class GrabAPI(object):
                     self.log.error("当前帐户抢单异常: {} url = {} data = {}".format(
                         self.__user_id, url, resp.text))
                     self.log.info("本次抢单失败，切换账号: {}".format(self.__user_id))
-                    return False
+                    os._exit(0)
 
                 return True
             except Exception as e:

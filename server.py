@@ -6,6 +6,8 @@
 # @File    : server.py
 # @Software: PyCharm
 import os
+import signal
+import time
 
 from alipay_model import AliPayModel
 from checkout_order import CheckoutOrder
@@ -28,6 +30,14 @@ db_config = {
 }
 
 sql_obj = MySQL(**db_config)
+
+is_running = True
+
+
+def process_quit(signo, frame):
+    global is_running
+    log.info('收到信号退出进程...')
+    is_running = False
 
 
 def get_grab_list(alipay_account):
@@ -97,6 +107,11 @@ def update_qr_code(grab_list, alipay_account):
 
 
 def main():
+    signal.signal(signal.SIGINT, process_quit)
+    signal.signal(signal.SIGTERM, process_quit)
+    signal.signal(signal.SIGQUIT, process_quit)
+    signal.signal(signal.SIGUSR1, process_quit)
+
     grab_thread_list = []
 
     # 先校验上一次的订单是否为空单
@@ -116,9 +131,27 @@ def main():
         grab_thread = GrabThread(sql_obj, grab_obj, log)
         grab_thread_list.append(grab_thread)
 
+    global is_running
+    while is_running:
+        is_run = False
+        for grab_thread in grab_thread_list:
+            if grab_thread.is_alive():
+                is_run = True
+                break
+
+        if not is_run:
+            break
+
+        time.sleep(2)
+
+    for grab_thread in grab_thread_list:
+        grab_thread.force_stop()
+
     # 阻塞等待线程结束
     for grab_thread in grab_thread_list:
         grab_thread.join()
+
+    log.info("安全退出进程!!!")
 
 
 if __name__ == '__main__':

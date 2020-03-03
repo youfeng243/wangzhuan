@@ -31,6 +31,10 @@ class GrabThread(threading.Thread):
         # 启动线程
         self.start()
 
+    def force_stop(self):
+        global is_running
+        is_running = False
+
     def __save_order(self, order_dict):
         sql = """INSERT INTO `order_info` (`order_id`, `username`, `user_id`, `alipay_account`, `money`, `is_invalid`, `json`, `checkout`, `create_time`)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
@@ -158,8 +162,8 @@ class GrabThread(threading.Thread):
                     # 判断是否正在抢单， 如有 则休眠3s 重新判断是否有订单
                     if self.__grab_obj.is_listen_order():
                         self.log.info(
-                            "其他线程正在抢单,休眠2s: {} {}".format(self.__grab_obj.get_user_id(),
-                                                          self.__grab_obj.get_alipay_account()))
+                            "收到进程退出信号，正在抢单,休眠2s: {} {}".format(self.__grab_obj.get_user_id(),
+                                                               self.__grab_obj.get_alipay_account()))
                         time.sleep(2)
                         continue
                     break

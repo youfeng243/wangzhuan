@@ -9,10 +9,12 @@ import os
 
 from alipay_model import AliPayModel
 from checkout_order import CheckoutOrder
+from common import date_util
 from common.mysql import MySQL
 from grab_api import GrabAPI
 from grab_thread import GrabThread
 from logger import Logger
+from qr_code import decode_qr_code
 
 log = Logger('wangzhuan.log').get_logger()
 
@@ -44,11 +46,47 @@ def get_grab_list(alipay_account):
     return grab_list
 
 
+# 存储二维码信息
+def save_qr_code(pic_path, alipay_account):
+    full_url = decode_qr_code(pic_path)
+    if full_url is None:
+        log.error("二维码识别失败: pic_path = {}".format(pic_path))
+        os._exit(0)
+
+    url = full_url.split("?t=")[0]
+    log.info("当前需要校验的链接: full_url = {} url = {}".format(full_url, url))
+
+    # 获取到当天所有的二维码信息
+    sql = 'select account, url from alipay_account_record where account = {} and to_days(create_time)=to_days(now())'.format(
+        alipay_account)
+
+    result_list = sql_obj.find_all(sql)
+    if isinstance(result_list, tuple):
+        for item in result_list:
+            item_url = item[1].split("?t=")[0]
+            if url == item_url:
+                log.info("当前需要存储的链接已经存在于数据库: full_url = {}".format(full_url))
+                return
+
+    # 开始存储链接
+    sql = """INSERT INTO `alipay_account_record` (`account`, `url`, `create_time`)
+            VALUES (%s,%s,%s)"""
+
+    insert_list = [(alipay_account,
+                    full_url,
+                    date_util.get_now_time())]
+
+    sql_obj.insert_batch(sql, insert_list)
+
+
 def update_qr_code(grab_list, alipay_account):
     pic_path = "./picture/" + alipay_account + '.jpeg'
     if not os.path.exists(pic_path):
         log.error("当前账户没有配置二维码，不进行抢单: alipay_account = {}".format(alipay_account))
         os._exit(0)
+
+    # 这里存储当前二维码信息
+    save_qr_code(pic_path, alipay_account)
 
     for grab_obj in grab_list:
         open_list = grab_obj.request_qr_list()

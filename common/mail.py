@@ -10,6 +10,8 @@ import json
 import smtplib
 from email.mime.text import MIMEText
 
+import requests
+
 from common.configer import Configer
 
 
@@ -32,6 +34,21 @@ def send_email(mail_host, mail_user, mail_pass, sender, receivers, content, titl
             email_client.quit()
 
 
+def send_robot(username, user_id, alipay, money, order_id):
+    URL = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=bf8b3340-9ed4-4d01-b51c-0e40583facb3'
+    post_data = {
+        "msgtype": "text",
+        "text": {
+            "content": "{}\r\n{}\r\n{}\r\n{}\r\n".format(user_id, username, alipay, money),
+            # "mentioned_list": ["@游丰"],
+        }
+    }
+    try:
+        requests.post(URL, json=post_data)
+    except Exception as e:
+        pass
+
+
 def send_mail_by_file(file_path, content_dict, title):
     conf_dict = Configer(file_path).get_mail_dict()
     send_mail_by_config(conf_dict, content_dict, title)
@@ -51,6 +68,7 @@ def send_mail_by_config(conf_dict, content_dict, title):
 
 def main():
     send_mail_by_file("../mail.ini", {"蓝海订单邮件提醒测试": "蓝海订单邮件提醒测试"}, "这是蓝海订单测试邮件")
+    #send_robot("fadsf", 'f1111', '1111', 'fasjflsaf')
 
 
 if __name__ == '__main__':

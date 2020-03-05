@@ -14,7 +14,7 @@ import time
 
 from common import date_util
 from common.date_util import get_cur_time
-from common.mail import send_mail_by_file
+from common.mail import send_mail_by_file, send_robot
 from play_audio import play_hint_audio
 from qr_code import save_qr_code
 
@@ -62,12 +62,18 @@ class GrabThread(threading.Thread):
 
         # 这里发送邮件
         send_dict = {
+            "订单ID": order_dict.get("OrderID"),
             "会员ID": self.__grab_obj.get_user_id(),
             "登录账号": self.__grab_obj.get_username(),
             "支付宝账号": self.__grab_obj.get_alipay_account(),
             "订单金额:": order_dict.get("OrderMoney"),
             "订单详情": order_dict
         }
+        send_robot(self.__grab_obj.get_username(),
+                   self.__grab_obj.get_user_id(),
+                   self.__grab_obj.get_alipay_account(),
+                   order_dict.get("OrderMoney"),
+                   order_dict.get("OrderID"))
         send_mail_by_file("./mail.ini", send_dict, "lanhai订单{}".format(date_util.get_now_time()))
 
     def __open_listen_order(self, channel_status, open_list):

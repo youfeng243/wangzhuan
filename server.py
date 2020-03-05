@@ -17,6 +17,7 @@ from grab_api import GrabAPI
 from grab_thread import GrabThread
 from logger import Logger
 from qr_code import decode_qr_code
+from user_info_api import UserInfoAPI
 
 log = Logger('wangzhuan.log').get_logger()
 
@@ -40,17 +41,11 @@ def process_quit(signo, frame):
     is_running = False
 
 
-def get_grab_list(alipay_account):
-    sql = "select username, password, token, cookie from user_info where start = 1"
-    result_list = sql_obj.find_all(sql)
-
-    if not isinstance(result_list, tuple) or len(result_list) <= 0:
-        log.error("没有设置蓝海账户，无法抢单")
-        os._exit(0)
-
+def get_grab_list(user_info_list, alipay_account):
     grab_list = []
-    for item in result_list:
-        grab_obj = GrabAPI(item[0], item[1], item[3], alipay_account, item[2], log)
+    for item in user_info_list:
+        grab_obj = GrabAPI(item.get("username"), item.get("password"), item.get("cookie"), alipay_account,
+                           item.get("token"), log)
         grab_list.append(grab_obj)
 
     return grab_list
@@ -114,6 +109,8 @@ def main():
 
     grab_thread_list = []
 
+    user_info_list = UserInfoAPI(sql_obj, log).get_user_list()
+
     # 先校验上一次的订单是否为空单
     CheckoutOrder(sql_obj, log)
 
@@ -121,7 +118,7 @@ def main():
     alipay_account = AliPayModel(sql_obj, log).get_best_account()
 
     # 初始化所有的抢单账户信息
-    grab_list = get_grab_list(alipay_account)
+    grab_list = get_grab_list(user_info_list, alipay_account)
 
     # 这里上传最新账号支付宝二维码到海蓝账户
     update_qr_code(grab_list, alipay_account)
@@ -150,6 +147,8 @@ def main():
     # 阻塞等待线程结束
     for grab_thread in grab_thread_list:
         grab_thread.join()
+
+    # 结束时需要检测是否有
 
     log.info("安全退出进程!!!")
 

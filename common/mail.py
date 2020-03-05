@@ -39,7 +39,7 @@ def send_robot(username, user_id, alipay, money, order_id):
     post_data = {
         "msgtype": "text",
         "text": {
-            "content": "{}\r\n{}\r\n{}\r\n{}\r\n".format(user_id, username, alipay, money),
+            "content": "{}\r\n{}\r\n{}\r\n{}\r\n{}\r\n".format(order_id, user_id, username, alipay, money),
             # "mentioned_list": ["@游丰"],
         }
     }
@@ -68,7 +68,7 @@ def send_mail_by_config(conf_dict, content_dict, title):
 
 def main():
     send_mail_by_file("../mail.ini", {"蓝海订单邮件提醒测试": "蓝海订单邮件提醒测试"}, "这是蓝海订单测试邮件")
-    #send_robot("fadsf", 'f1111', '1111', 'fasjflsaf')
+    # send_robot("fadsf", 'f1111', '1111', 'fasjflsaf')
 
 
 if __name__ == '__main__':

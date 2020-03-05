@@ -11,9 +11,10 @@ import pygame
 
 
 def play_hint_audio():
+    # return
     pygame.mixer.init()
     pygame.mixer.music.load("./audio/7500.mp3")
-    pygame.mixer.music.play(loops=200)
+    pygame.mixer.music.play(loops=25)
     while True:
         if pygame.mixer.music.get_busy():
             time.sleep(1)

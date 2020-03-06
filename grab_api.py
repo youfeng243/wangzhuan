@@ -253,21 +253,6 @@ class GrabAPI(object):
                 continue
         return False
 
-    def update_config_all(self, pic_path, open_list):
-        '''
-        上传配置信息
-        :param pic_path:
-        :param open_list:
-        :return:
-        '''
-
-        for param_dict in open_list:
-            success = self.update_index_config(pic_path, param_dict)
-            if not success:
-                return False
-
-        return True
-
     # 开启抢单 休眠3s
     def open_listen_order(self, param):
         '''

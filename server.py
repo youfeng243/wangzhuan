@@ -95,7 +95,7 @@ def update_qr_code(grab_list, alipay_account):
 
     for grab_obj in grab_list:
         open_list = grab_obj.request_qr_list()
-        result = grab_obj.update_config_all(pic_path, open_list)
+        result = grab_obj.update_index_config(pic_path, open_list[0])
         if not result:
             log.error("部分账户更新二维码失败: user_id = {}", grab_obj.get_user_id())
             os._exit(0)

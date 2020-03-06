@@ -27,7 +27,6 @@ class GrabThread(threading.Thread):
         self.log = log
         self.__grab_obj = grab_obj
         self.__sql_obj = sql_obj
-        self.__open_index = 0
         # 启动线程
         self.start()
 
@@ -76,39 +75,28 @@ class GrabThread(threading.Thread):
                    order_dict.get("OrderID"))
         send_mail_by_file("./mail.ini", send_dict, "lanhai订单{}".format(date_util.get_now_time()))
 
-    def __open_listen_order(self, channel_status, open_list):
-        cnt = 0
-
+    def __open_listen_order(self, channel_status, param):
         # 获取到最新二维码路径
-        pic_path = self.get_new_qrcode_path(open_list)
+        pic_path = self.get_new_qrcode_path(param)
 
         # 遍历所有的帐户，如果所有帐户均不可用，则需要退出抢单 并提示错误
-        while cnt < len(open_list):
-            cnt += 1
+        param_dict = copy.deepcopy(param)
 
-            self.__open_index += 1
-            self.__open_index %= len(open_list)
-            self.log.info("当前使用帐户信息: {} open_index = {}".format(self.__grab_obj.get_user_id(), self.__open_index))
+        #  先更新对应的配置
+        result = self.__grab_obj.update_index_config(pic_path, param_dict)
+        if result:
+            # 如果更新成功， 则重新获取最新的配置信息
+            open_list = self.__grab_obj.request_qr_list()
+            param_dict = copy.deepcopy(open_list[0])
 
-            param_dict = copy.deepcopy(open_list[self.__open_index])
-
-            #  先更新对应的配置
-            result = self.__grab_obj.update_index_config(pic_path, param_dict)
-            if result:
-                # 如果更新成功， 则重新获取最新的配置信息
-                open_list = self.__grab_obj.request_qr_list()
-                param_dict = copy.deepcopy(open_list[self.__open_index])
-
-            param_dict['ChannelStatus'] = channel_status
-            param_dict['ChannelOrder'] = 0
-            success = self.__grab_obj.open_listen_order(param_dict)
-            if not success:
-                continue
-
-            return True
-        if cnt >= len(open_list):
-            self.log.error("当前所有帐户均不可用, 退出抢单: {}".format(self.__grab_obj.get_user_id()))
+        param_dict['ChannelStatus'] = channel_status
+        param_dict['ChannelOrder'] = 0
+        success = self.__grab_obj.open_listen_order(param_dict)
+        if not success:
+            self.log.error("当前帐户不可用, 退出抢单: {}".format(self.__grab_obj.get_user_id()))
             os._exit(0)
+
+        return True
 
     def __create_new_qr_code(self, param_dict, alipay_account):
         # 先获取最新的支付宝链接
@@ -128,23 +116,12 @@ class GrabThread(threading.Thread):
 
         return qr_code_path
 
-    def get_new_qrcode_path(self, open_list):
+    def get_new_qrcode_path(self, param):
         # 获取到当前使用的支付宝信息
         alipay_account = self.__grab_obj.get_alipay_account()
 
-        # 如果没有配置任何收款码信息 则不需要上传
-        if not isinstance(open_list, list):
-            return
-
         # 获取最新的二维码
-        return self.__create_new_qr_code(open_list[0], alipay_account)
-
-    # def __update_config(self, open_list):
-    #     # 获取最新的二维码
-    #     qr_code_path = self.get_new_qrcode_path(open_list)
-    #
-    #     # 更新配置信息
-    #     self.__grab_obj.update_config_all(qr_code_path, open_list)
+        return self.__create_new_qr_code(param, alipay_account)
 
     def run(self):
 
@@ -152,7 +129,7 @@ class GrabThread(threading.Thread):
         open_list = self.__grab_obj.request_qr_list()
 
         # 如果有正在抢单 则先取消抢单
-        self.__open_listen_order(0, open_list)
+        self.__open_listen_order(0, open_list[0])
 
         global is_running
         while True:
@@ -195,7 +172,7 @@ class GrabThread(threading.Thread):
             open_list = self.__grab_obj.request_qr_list()
 
             # 开启抢单 休眠3s
-            if self.__open_listen_order(1, open_list):
+            if self.__open_listen_order(1, open_list[0]):
                 sleep_time = random.randint(20, 26)
                 self.log.info("开启抢单，休眠{}秒: {} {}".format(sleep_time, self.__grab_obj.get_user_id(),
                                                          self.__grab_obj.get_alipay_account()))

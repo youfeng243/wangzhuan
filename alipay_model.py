@@ -37,6 +37,9 @@ class AliPayModel(object):
     def get_best_account(self):
         return self.__best_account
 
+    def score(self, total, num):
+        return total + num * 100
+
     def __cal_best_account(self, order_dict):
         '''
         计算出最佳账户信息
@@ -55,13 +58,17 @@ class AliPayModel(object):
                     total_money >= self.MAX_PAY_MONEY:
                 continue
 
-            if min_money > total_money:
+            order_score = self.score(total_money, order_num)
+
+            min_score = self.score(min_money, min_order_num)
+
+            if min_score > order_score:
                 best_account = account
                 min_money = total_money
                 min_order_num = order_num
                 continue
 
-            if min_money < total_money:
+            if min_score < order_score:
                 continue
 
             if min_order_num > order_num:
@@ -74,6 +81,9 @@ class AliPayModel(object):
             self.log.info("当前所有账户都超出额度，停止抢单！！！！")
             os._exit(0)
 
+        self.log.info("当前最佳账号: account = {} score = {} money = {} num = {}".format(
+            best_account, self.score(min_money, min_order_num), min_money, min_order_num
+        ))
         return best_account
 
     def __get_order(self):

@@ -15,6 +15,8 @@ from user_info_api import UserInfoAPI
 
 
 class CheckoutOrder(object):
+    SUCCESS = 2
+    FAIL = 3
     '''
     校验订单是否为空单
     '''
@@ -22,6 +24,12 @@ class CheckoutOrder(object):
     def __init__(self, sql_obj, log):
         self.__sql_obj = sql_obj
         self.log = log
+        # 缓存失败的订单
+        self.__fail_order_dict = {}
+
+        # 获取成功订单
+        self.__success_order_dict = {}
+
         self.__user_dict = self.__get_user_dict()
 
         # 校验订单是否为空单
@@ -37,7 +45,7 @@ class CheckoutOrder(object):
 
         return user_dict
 
-    def __request_fail_order_list(self, token, cookie):
+    def __request_order_list(self, token, cookie, pay_type):
         '''
         获取远程账户列表
         :return:
@@ -63,7 +71,7 @@ class CheckoutOrder(object):
             "token": token,
             "startTime": date_util.get_cur_date('%Y/%m/%d'),
             "endTime": date_util.get_any_date(-30, format='%Y/%m/%d'),
-            "PayType": 3,
+            "PayType": pay_type,
             "p": 1,
         }
 
@@ -123,26 +131,93 @@ class CheckoutOrder(object):
             sql = 'update order_info set checkout = 1 where id = {}'.format(order[0])
             self.__sql_obj.execute(sql)
 
+    def __get_fail_order_list(self, user_dict):
+        if user_dict is None:
+            return None
+
+        username = user_dict.get("username")
+        if username is None:
+            self.log.error("当前账户信息不存在: user_dict = {}".format(user_dict))
+            return None
+
+        if username in self.__fail_order_dict:
+            self.log.info("从缓存中获取失败订单信息: username = {}".format(username))
+            return self.__fail_order_dict.get(username)
+
+        fail_order_list = self.__request_order_list(user_dict.get("token"), user_dict.get("cookie"), self.FAIL)
+        if not isinstance(fail_order_list, list):
+            self.log.error("请求失败订单信息失败: username = {}".format(username))
+            return None
+
+        self.__fail_order_dict[username] = fail_order_list
+        return fail_order_list
+
+    def __get_success_order_list(self, user_dict):
+        if user_dict is None:
+            return None
+
+        username = user_dict.get("username")
+        if username is None:
+            self.log.error("当前账户信息不存在: user_dict = {}".format(user_dict))
+            return None
+
+        if username in self.__success_order_dict:
+            self.log.info("从缓存中获取成功订单信息: username = {}".format(username))
+            return self.__success_order_dict.get(username)
+
+        order_list = self.__request_order_list(user_dict.get("token"), user_dict.get("cookie"), self.FAIL)
+        if not isinstance(order_list, list):
+            self.log.error("请求成功订单信息失败: username = {}".format(username))
+            return None
+
+        self.__success_order_dict[username] = order_list
+        return order_list
+
+    def __is_fail_order(self, order, user_dict):
+        # 获取服务端的失败订单列表
+        fail_order_list = self.__get_fail_order_list(user_dict)
+        if not isinstance(fail_order_list, list):
+            return None
+
+        for item in fail_order_list:
+            order_id = item.get("OrderID")
+            if str(order_id) == str(order[1]):
+                return True
+        return None
+
+    def __is_success_order(self, order, user_dict):
+        # 获取服务端的失败订单列表
+        success_order_list = self.__get_success_order_list(user_dict)
+        if not isinstance(success_order_list, list):
+            return None
+
+        for item in success_order_list:
+            order_id = item.get("OrderID")
+            if str(order_id) == str(order[1]):
+                return True
+        return None
+
     def __check_from_server(self, order, user_dict):
 
         if user_dict is None:
             self.__check_by_manual(order)
             return
 
-        # 获取服务端的失败订单列表
-        fail_order_list = self.__request_fail_order_list(user_dict.get("token"), user_dict.get("cookie"))
-        if not isinstance(fail_order_list, list) or len(fail_order_list) <= 0:
-            self.__check_by_manual(order)
+        # 如果是失败订单
+        if self.__is_fail_order(order, user_dict):
+            sql = 'update order_info set checkout = 1, is_invalid = 1 where id = {}'.format(order[0])
+            self.__sql_obj.execute(sql)
+            self.log.info("当前订单是空单，自动化确认: user_id = {} order_id = {}".format(order[2], order[1]))
             return
 
-        for item in fail_order_list:
-            order_id = item.get("OrderID")
-            if str(order_id) == str(order[1]):
-                sql = 'update order_info set checkout = 1, is_invalid = 1 where id = {}'.format(order[0])
-                self.__sql_obj.execute(sql)
-                self.log.info("当前订单是空单，自动化确认: user_id = {} order_id = {}".format(order[2], order[1]))
-                return
+        # 如果是成功订单
+        if self.__is_success_order(order, user_dict):
+            sql = 'update order_info set checkout = 1 where id = {}'.format(order[0])
+            self.__sql_obj.execute(sql)
+            self.log.info("当前订单是成功订单，自动化确认: user_id = {} order_id = {}".format(order[2], order[1]))
+            return
 
+        # 手动确认
         self.__check_by_manual(order)
 
     def __check_order(self):
@@ -159,3 +234,7 @@ class CheckoutOrder(object):
 
         for order in order_list:
             self.__check_from_server(order, self.__user_dict.get(order[5]))
+
+        # 清空缓存
+        self.__fail_order_dict = {}
+        self.__success_order_dict = {}

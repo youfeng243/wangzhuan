@@ -179,6 +179,16 @@ def main():
 
     mysql = MySQL(**db_config)
 
+    def __is_order_exist(order_id):
+        sql = """select * from order_info where `order_id` = {}""".format(order_id)
+        result = mysql.find_one(sql)
+        if result is not None:
+            return True
+
+        return False
+
+    __is_order_exist(213031111128)
+
 
 if __name__ == '__main__':
     main()

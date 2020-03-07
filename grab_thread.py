@@ -34,11 +34,26 @@ class GrabThread(threading.Thread):
         global is_running
         is_running = False
 
+    def __is_order_exist(self, order_id):
+        sql = """select * from order_info where `order_id` = {}""".format(order_id)
+        result = self.__sql_obj.find_one(sql)
+        if result is not None:
+            return True
+
+        return False
+
     def __save_order(self, order_dict):
+
+        order_id = order_dict.get("OrderID")
+
+        # 判断当前订单是否已经存在 存在则不保存
+        if self.__is_order_exist(order_id):
+            self.log.warn("当前订单已经存在，不存储: order_id = {}".format(order_id))
+            return
+
         sql = """INSERT INTO `order_info` (`order_id`, `username`, `user_id`, `alipay_account`, `money`, `is_invalid`, `json`, `checkout`, `create_time`)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
 
-        order_id = order_dict.get("OrderID")
         username = self.__grab_obj.get_username()
         user_id = self.__grab_obj.get_user_id()
         alipay_account = self.__grab_obj.get_alipay_account()

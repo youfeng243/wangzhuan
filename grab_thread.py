@@ -138,6 +138,13 @@ class GrabThread(threading.Thread):
         # 获取最新的二维码
         return self.__create_new_qr_code(param, alipay_account)
 
+    def __sleep(self, second):
+        global is_running
+        cnt = 0
+        while is_running and cnt < second:
+            cnt += 1
+            time.sleep(1)
+
     def run(self):
 
         # # 先获取到最新的收款码信息
@@ -194,21 +201,23 @@ class GrabThread(threading.Thread):
                 sleep_time = random.randint(20, 26)
                 self.log.info("开启抢单，休眠{}秒: {} {}".format(sleep_time, self.__grab_obj.get_user_id(),
                                                          self.__grab_obj.get_alipay_account()))
-                time.sleep(sleep_time)
+                self.__sleep(sleep_time)
                 continue
 
-            # 进入这里说明有排队中订单 这里需要进入循环等待
-            while True:
+            # 进入这里说明有排队中订单 这里需要进入循环等待， 只有当其他线程都没来订单的时候才请求
+            while is_running:
                 result = self.__open_listen_order(1, open_list[0])
                 if result == self.__grab_obj.GRAB_SUCCESS:
                     sleep_time = random.randint(20, 26)
                     self.log.info("开启抢单，休眠{}秒: {} {}".format(sleep_time, self.__grab_obj.get_user_id(),
                                                              self.__grab_obj.get_alipay_account()))
-                    time.sleep(sleep_time)
+                    self.__sleep(sleep_time)
                     break
 
                 self.log.warn("当前账号处于订单排队中, 开始休眠60s: user_id = {} account = {}".format(
                     self.__grab_obj.get_user_id(), self.__grab_obj.get_alipay_account()))
-                time.sleep(60)
+
+                # 自我休眠但是需要监控启动情况
+                self.__sleep(60)
 
         self.log.info("当前线程正常退出: {} {}".format(self.__grab_obj.get_user_id(), self.__grab_obj.get_alipay_account()))

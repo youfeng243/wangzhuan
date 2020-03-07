@@ -16,6 +16,15 @@ from qr_code import get_pic_base64
 
 
 class GrabAPI(object):
+
+    # 抢单成功
+    SUCCESS = 1
+    # 抢单失败
+    FAIL = 2
+    # 排队中
+    LINE_UP = 3
+
+
     def __init__(self, username, password, cookie, alipay_account, token, log):
         self.log = log
         self.__username = username

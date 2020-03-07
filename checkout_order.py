@@ -165,7 +165,7 @@ class CheckoutOrder(object):
             self.log.info("从缓存中获取成功订单信息: username = {}".format(username))
             return self.__success_order_dict.get(username)
 
-        order_list = self.__request_order_list(user_dict.get("token"), user_dict.get("cookie"), self.FAIL)
+        order_list = self.__request_order_list(user_dict.get("token"), user_dict.get("cookie"), self.SUCCESS)
         if not isinstance(order_list, list):
             self.log.error("请求成功订单信息失败: username = {}".format(username))
             return None

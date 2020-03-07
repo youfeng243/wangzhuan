@@ -51,6 +51,13 @@ class GrabThread(threading.Thread):
             self.log.warn("当前订单已经存在，不存储: order_id = {}".format(order_id))
             return
 
+        self.log.info("###################订单信息###################")
+        self.log.info("当前订单: {} {} {}".format(
+            self.__grab_obj.get_user_id(),
+            self.__grab_obj.get_alipay_account(),
+            self.__grab_obj.get_username()))
+        self.log.info("{}".format(json.dumps(order_dict, indent=4, ensure_ascii=False)))
+
         sql = """INSERT INTO `order_info` (`order_id`, `username`, `user_id`, `alipay_account`, `money`, `is_invalid`, `json`, `checkout`, `create_time`)
         VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
 

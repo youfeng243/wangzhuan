@@ -388,10 +388,10 @@ class GrabAPI(object):
 
                 if len(result) > 0:
                     order_dict = result[0]
-                    if isinstance(order_dict, dict):
-                        self.log.info("###################订单信息###################")
-                        self.log.info("当前订单: {} {} {}".format(self.__user_id, self.__alipay_account, self.__username))
-                        self.log.info("{}".format(json.dumps(order_dict, indent=4, ensure_ascii=False)))
+                    # if isinstance(order_dict, dict):
+                    #     self.log.info("###################订单信息###################")
+                    #     self.log.info("当前订单: {} {} {}".format(self.__user_id, self.__alipay_account, self.__username))
+                    #     self.log.info("{}".format(json.dumps(order_dict, indent=4, ensure_ascii=False)))
                     return True, order_dict
 
                 return False, None

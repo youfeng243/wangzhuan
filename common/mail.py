@@ -39,7 +39,8 @@ def send_robot(username, user_id, alipay, money, order_id):
     post_data = {
         "msgtype": "text",
         "text": {
-            "content": "{}\r\n{}\r\n{}\r\n{}\r\n{}\r\n".format(order_id, user_id, username, alipay, money),
+            "content": "id:{}\r\norder_id:{}\r\nuser_id:{}\r\nusername:{}\r\npay:{}\r\n{}\r\n".format(
+                username[0], order_id, user_id, username, alipay, money),
             # "mentioned_list": ["@游丰"],
         }
     }

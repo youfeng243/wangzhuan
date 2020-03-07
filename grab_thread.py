@@ -92,11 +92,11 @@ class GrabThread(threading.Thread):
         param_dict['ChannelStatus'] = channel_status
         param_dict['ChannelOrder'] = 0
         success = self.__grab_obj.open_listen_order(param_dict)
-        if not success:
+        if success == self.__grab_obj.GRAB_FAIL:
             self.log.error("当前帐户不可用, 退出抢单: {}".format(self.__grab_obj.get_user_id()))
             os._exit(0)
 
-        return True
+        return success
 
     def __create_new_qr_code(self, param_dict, alipay_account):
         # 先获取最新的支付宝链接
@@ -172,10 +172,26 @@ class GrabThread(threading.Thread):
             open_list = self.__grab_obj.request_qr_list()
 
             # 开启抢单 休眠3s
-            if self.__open_listen_order(1, open_list[0]):
+            result = self.__open_listen_order(1, open_list[0])
+            if result == self.__grab_obj.GRAB_SUCCESS:
                 sleep_time = random.randint(20, 26)
                 self.log.info("开启抢单，休眠{}秒: {} {}".format(sleep_time, self.__grab_obj.get_user_id(),
                                                          self.__grab_obj.get_alipay_account()))
                 time.sleep(sleep_time)
+                continue
+
+            # 进入这里说明有排队中订单 这里需要进入循环等待
+            while True:
+                result = self.__open_listen_order(1, open_list[0])
+                if result == self.__grab_obj.GRAB_SUCCESS:
+                    sleep_time = random.randint(20, 26)
+                    self.log.info("开启抢单，休眠{}秒: {} {}".format(sleep_time, self.__grab_obj.get_user_id(),
+                                                             self.__grab_obj.get_alipay_account()))
+                    time.sleep(sleep_time)
+                    break
+
+                self.log.warn("当前账号处于订单排队中, 开始休眠60s: user_id = {} account = {}".format(
+                    self.__grab_obj.get_user_id(), self.__grab_obj.get_alipay_account()))
+                time.sleep(60)
 
         self.log.info("当前线程正常退出: {} {}".format(self.__grab_obj.get_user_id(), self.__grab_obj.get_alipay_account()))

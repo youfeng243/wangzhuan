@@ -18,11 +18,11 @@ from qr_code import get_pic_base64
 class GrabAPI(object):
 
     # 抢单成功
-    SUCCESS = 1
+    GRAB_SUCCESS = 1
     # 抢单失败
-    FAIL = 2
+    GRAB_FAIL = 2
     # 排队中
-    LINE_UP = 3
+    GRAB_LINE_UP = 3
 
 
     def __init__(self, username, password, cookie, alipay_account, token, log):
@@ -312,23 +312,25 @@ class GrabAPI(object):
                 json_data = resp.json()
                 if json_data is None:
                     self.log.error("返回数据包异常: {} url = {} json_data = None".format(self.__user_id, url))
-                    os._exit(0)
+                    return self.GRAB_FAIL
 
                 code = json_data.get("code")
                 if code != 0:
                     self.log.error("当前帐户抢单异常: {} url = {} data = {}".format(
                         self.__user_id, url, resp.text))
-                    self.log.info("本次抢单失败，切换账号: {}".format(self.__user_id))
-                    os._exit(0)
+                    if "存在排队订单" in json_data.get("msg"):
+                        return self.GRAB_LINE_UP
 
-                return True
+                    return self.GRAB_FAIL
+
+                return self.GRAB_SUCCESS
             except Exception as e:
                 self.log.error("请求判断订单信息异常: {}".format(self.__user_id))
                 self.log.exception(e)
                 time.sleep(1)
                 continue
 
-        return False
+        return self.GRAB_FAIL
 
     # 判断是否有订单 listenOrder 如有 则退出
     def is_have_order(self):

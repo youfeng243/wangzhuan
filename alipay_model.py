@@ -26,7 +26,7 @@ class AliPayModel(object):
         self.log = log
         self.__sql_obj = sql_obj
 
-        self.__account_list = self.__get_account()
+        self.__account_dict = self.__get_account()
 
         # 获取当天所有与当前支付宝相关的订单信息
         self.__order_dict = self.__get_order()
@@ -54,12 +54,7 @@ class AliPayModel(object):
             order_num = len(order_list)
             total_money = sum(order_list)
 
-            if (order_num >= self.MAX_ORDER_NUM and total_money >= self.MAX_ORDER_MONEY) or \
-                    total_money >= self.MAX_PAY_MONEY:
-                continue
-
             order_score = self.score(total_money, order_num)
-
             min_score = self.score(min_money, min_order_num)
 
             if min_score > order_score:
@@ -94,20 +89,34 @@ class AliPayModel(object):
             self.log.error("获取订单数据失败")
             os._exit(0)
 
-        result_dict = {}
+        temp_dict = {}
 
         # 先初始化订单信息
-        for account in self.__account_list:
-            result_dict[account] = []
+        for account, ac_item in self.__account_dict.items():
+            temp_dict[account] = []
 
         for item in result_list:
             account = item[0]
             money = item[1]
 
-            if account not in result_dict:
+            if account not in temp_dict:
                 continue
 
-            result_dict[account].append(money)
+            temp_dict[account].append(money)
+
+        result_dict = {}
+        for account, money_list in temp_dict.items():
+            ac_item = self.__account_dict.get(account)
+            max_times = ac_item.get("max_times")
+            max_money = ac_item.get("max_money")
+
+            if len(money_list) >= max_times or sum(money_list) >= max_money:
+                self.log.info(
+                    "当前支付账号超出限制: account = {} max_times = {} max_money = {} cur_times = {} cur_money = {}".format(
+                        account, max_times, max_money, len(money_list), sum(money_list)))
+                continue
+
+            result_dict[account] = money_list
 
         return result_dict
 
@@ -116,7 +125,7 @@ class AliPayModel(object):
         获取所有的支付宝账户信息
         :return:
         '''
-        sql = '''select account from alipay_account_info where start = 1'''
+        sql = '''select account, max_times, max_money from alipay_account_info where start = 1'''
         result_list = self.__sql_obj.find_all(sql)
         if not isinstance(result_list, tuple):
             self.log.error("获取支付宝账户失败...")
@@ -126,8 +135,12 @@ class AliPayModel(object):
             self.log.error("当前没有有效的支付宝账户")
             os._exit(0)
 
-        account_list = []
+        account_dict = {}
         for item in result_list:
-            account_list.append(item[0])
+            account_dict[item[0]] = {
+                "account": item[0],
+                "max_times": item[1],
+                "max_money": item[2]
+            }
 
-        return account_list
+        return account_dict

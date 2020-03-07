@@ -170,11 +170,13 @@ class GrabThread(threading.Thread):
             # 判断是否有订单 listenOrder 如有 则退出
             success, order_dict = self.__grab_obj.is_have_order()
             if success:
-                is_running = False
-                self.__save_order(order_dict)
-                # 这里播放语音
-                play_hint_audio()
-                break
+                # 如果订单信息在数据库中不存在 则直接退出进程
+                if not self.__is_order_exist(order_dict.get("OrderID")):
+                    is_running = False
+                    self.__save_order(order_dict)
+                    # 这里播放语音
+                    play_hint_audio()
+                    break
 
             # 判断是否正在抢单， 如有 则休眠3s 重新判断是否有订单
             if self.__grab_obj.is_listen_order():

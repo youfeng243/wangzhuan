@@ -16,6 +16,7 @@ from common.mysql import MySQL
 from grab_api import GrabAPI
 from grab_thread import GrabThread
 from logger import Logger
+from order_print import OrderPrint
 from qr_code import decode_qr_code
 from user_info_api import UserInfoAPI
 
@@ -108,6 +109,9 @@ def main():
     signal.signal(signal.SIGUSR1, process_quit)
 
     grab_thread_list = []
+
+    # 先统计当前盈利情况
+    OrderPrint(sql_obj, log)
 
     user_info_list = UserInfoAPI(sql_obj, log).get_user_list()
 

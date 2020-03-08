@@ -211,6 +211,9 @@ class GrabThread(threading.Thread):
                 self.__sleep(sleep_time)
                 continue
 
+            # 先休眠10秒
+            self.__sleep(10)
+
             # 进入这里说明有排队中订单 这里需要进入循环等待， 只有当其他线程都没来订单的时候才请求
             while is_running:
                 result = self.__open_listen_order(1, open_list[0])

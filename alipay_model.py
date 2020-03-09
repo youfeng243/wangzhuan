@@ -81,6 +81,44 @@ class AliPayModel(object):
         ))
         return best_account
 
+    def __is_yesterday_limit(self, account, max_money):
+        sql = """SELECT sum(money) FROM order_info WHERE  alipay_account = '{}' and TO_DAYS(NOW()) - TO_DAYS(create_time) = 1 and checkout = 1 and is_invalid = 0""".format(
+            account)
+
+        result = self.__sql_obj.find_one(sql)
+        if result is None:
+            return False
+
+        if result[0] >= max_money:
+            return True
+
+        return False
+
+    def __is_yesterday_max(self):
+        sql = """SELECT alipay_account, money FROM order_info WHERE TO_DAYS(NOW()) - TO_DAYS(create_time) = 1 and checkout = 1 and is_invalid = 0"""
+        result_list = self.__sql_obj.find_all(sql)
+        if result_list is None or len(result_list) <= 0:
+            return None
+
+        max_money = -1
+        max_account = None
+
+        account_dict = {}
+        for item in result_list:
+            account = item[0]
+            money = item[1]
+
+            if account in account_dict:
+                account_dict[account] += money
+            else:
+                account_dict[account] = money
+
+            if max_money < account_dict[account]:
+                max_money = account_dict[account]
+                max_account = account
+
+        return max_account
+
     def __get_order(self):
         sql = 'select alipay_account, money from order_info where is_invalid = 0 and checkout = 1 and to_days(create_time)=to_days(now())'
 
@@ -104,11 +142,19 @@ class AliPayModel(object):
 
             temp_dict[account].append(money)
 
+        # 获得昨日转账最大的账户
+        yesterday_max_account = self.__is_yesterday_max()
+
         result_dict = {}
         for account, money_list in temp_dict.items():
             ac_item = self.__account_dict.get(account)
             max_times = ac_item.get("max_times")
             max_money = ac_item.get("max_money")
+
+            if self.__is_yesterday_limit(account, max_money) or yesterday_max_account == account:
+                max_times -= 1
+                self.log.info("当前账号昨日超额或转账最多，限制次数减一: account = {} max_times = {}".format(
+                    account, max_times))
 
             if len(money_list) >= max_times or sum(money_list) >= max_money:
                 self.log.info(

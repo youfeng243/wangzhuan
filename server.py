@@ -110,13 +110,13 @@ def main():
 
     grab_thread_list = []
 
-    # 先统计当前盈利情况
-    OrderPrint(sql_obj, log)
-
     user_info_list = UserInfoAPI(sql_obj, log).get_user_list()
 
     # 先校验上一次的订单是否为空单
     CheckoutOrder(sql_obj, log)
+
+    # 先统计当前盈利情况
+    OrderPrint(sql_obj, log)
 
     # 再获取到最优的支付宝账户
     alipay_account = AliPayModel(sql_obj, log).get_best_account()

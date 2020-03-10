@@ -169,6 +169,8 @@ class GrabThread(threading.Thread):
                     success, order_dict = self.__grab_obj.is_have_order()
                     if success:
                         self.__save_order(order_dict)
+                        # 这里播放语音
+                        play_hint_audio()
                         break
 
                     # 判断是否正在抢单， 如有 则休眠3s 重新判断是否有订单

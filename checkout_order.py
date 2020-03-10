@@ -5,6 +5,7 @@
 # @Site    : 
 # @File    : checkout_order.py
 # @Software: PyCharm
+import json
 import os
 import time
 
@@ -15,7 +16,11 @@ from user_info_api import UserInfoAPI
 
 
 class CheckoutOrder(object):
+    # 未回款的订单
+    RETURNED = 1
+    # 成功的订单
     SUCCESS = 2
+    # 失败的订单
     FAIL = 3
     '''
     校验订单是否为空单
@@ -32,8 +37,26 @@ class CheckoutOrder(object):
 
         self.__user_dict = self.__get_user_dict()
 
+        # 校验是否有未回款的订单
+        self.__check_order_returned_money()
+
         # 校验订单是否为空单
-        self.__check_order()
+        self.__check_order_invalid()
+
+    def __check_order_returned_money(self):
+        for username, user in self.__user_dict.items():
+            order_list = self.__request_order_list(user.get("token"), user.get("cookie"), self.RETURNED)
+            if not isinstance(order_list, list):
+                self.log.error("请求未回款订单信息失败: username = {} user = {}".format(
+                    username, json.dumps(user, ensure_ascii=False, indent=4)))
+                os._exit(0)
+
+            if len(order_list) > 0:
+                self.log.error("当前存在未回款订单，无法执行: username = {} user = {}".format(
+                    username, json.dumps(user, ensure_ascii=False, indent=4)))
+                os._exit(0)
+
+        self.log.info("所有订单均已回款,正常抢单...")
 
     def __get_user_dict(self):
 
@@ -220,7 +243,7 @@ class CheckoutOrder(object):
         # 手动确认
         self.__check_by_manual(order)
 
-    def __check_order(self):
+    def __check_order_invalid(self):
         '''
         获取所有未校验的订单
         :return:

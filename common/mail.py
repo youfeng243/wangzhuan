@@ -32,7 +32,10 @@ def send_email(mail_host, mail_user, mail_pass, sender, receivers, content, titl
         print(e)
     finally:
         if email_client is not None:
-            email_client.quit()
+            try:
+                email_client.quit()
+            except Exception as e:
+                print("退出邮件异常....")
 
 
 def send_robot(username, user_id, alipay, money, order_id):

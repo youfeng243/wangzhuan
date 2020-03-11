@@ -8,6 +8,7 @@
 
 import json
 import smtplib
+import traceback
 from email.mime.text import MIMEText
 
 import requests
@@ -30,6 +31,7 @@ def send_email(mail_host, mail_user, mail_pass, sender, receivers, content, titl
         print("mail has been send successfully.")
     except smtplib.SMTPException as e:
         print(e)
+        traceback.print_exc()
     finally:
         if email_client is not None:
             try:

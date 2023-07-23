@@ -2,7 +2,7 @@ pymysql
 qrcode
 pygame
 zxing==0.10
-requests==2.13.0
+requests==2.31.0
 requests[socks]
 pysocks==1.6.8
 pyautogui
